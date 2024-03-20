@@ -37,8 +37,10 @@
         w32-pipe-buffer-size (* 64 1024))
   (setq selection-coding-system 'utf-8))
 
-(unless IS-MAC    (setq command-line-ns-option-alist nil))
-(unless IS-LINUX  (setq command-line-x-option-alist nil))
+(unless (eq system-type 'darwin)
+  (setq command-line-ns-option-alist nil))
+(unless (eq system-type 'gnu/linux)
+  (setq command-line-x-option-alist nil))
 
 (setq ad-redefinition-action 'accept)
 

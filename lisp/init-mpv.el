@@ -16,8 +16,8 @@
     (let* ((is-m3u-file (and (buffer-file-name)
                              (string= (file-name-extension buffer-file-name) "m3u")))
            (playlist-file (if is-m3u-file (buffer-file-name)
-                            (expand-file-name "~/Music/Local/playlist.m3u")))
-           (args (list "--volume=60" "--shuffle" "--no-video"
+                            (expand-file-name "~/Music/Local2/playlist.m3u")))
+           (args (list "--volume=30" "--shuffle" "--no-video"
                        "--loop-playlist=inf" "--no-resume-playback"
                        playlist-file)))
       (if is-m3u-file

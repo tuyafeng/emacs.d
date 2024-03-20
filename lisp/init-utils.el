@@ -2,6 +2,27 @@
 ;;; Commentary:
 ;;; Code:
 
+;; Reference: https://github.com/gmoutso/dotemacs/blob/93649716da46497dd79d07e06a30e694b9207a2b/lisp/variousrc.el
+(defun my/copy-file-to-clipboard (&optional file)
+  "Copy file at point to clipboard."
+  (interactive)
+  (let ((file (or file (if (derived-mode-p 'dired-mode)
+                           (dired-get-file-for-visit)
+                         (buffer-file-name)))))
+    (when (and file (file-regular-p file))
+      (cond
+       ((eq system-type 'windows-nt)
+        (message "Not supported yet."))
+       ((eq system-type 'darwin)
+        (do-applescript
+         (format "set the clipboard to POSIX file \"%s\"" (expand-file-name file))))
+       ((eq system-type 'gnu/linux)
+        (call-process-shell-command
+         (format "xclip -selection clipboard -t %s -i %s"
+                 (mailcap-extension-to-mime (file-name-extension file))
+                 file))))
+      (message "Copied %s" file))))
+
 (defun my/phone-screenshot ()
   "Take screenshot for android phone using adb."
   (interactive)
@@ -22,38 +43,6 @@
   "Run scrcpy for connected android device."
   (interactive)
   (async-shell-command "scrcpy --hid-keyboard  --always-on-top  --window-width 340 --shortcut-mod=rctrl+rsuper"))
-
-(defun my/delete-current-file ()
-  "Delete the current file, and kill the buffer."
-  (interactive)
-  (unless (buffer-file-name)
-    (error "No file is currently being edited"))
-  (when (yes-or-no-p (format "Delete '%s'?"
-                             (file-name-nondirectory buffer-file-name)))
-    (delete-file (buffer-file-name))
-    (kill-this-buffer)))
-
-(defun my/rename-current-file-and-buffer (new-name)
-  "Renames both current buffer and file it's visiting to NEW-NAME."
-  (interactive "New name: ")
-  (let ((name (buffer-name))
-        (filename (buffer-file-name)))
-    (unless filename
-      (error "Buffer '%s' is not visiting a file!" name))
-    (progn
-      (when (file-exists-p filename)
-        (rename-file filename new-name 1))
-      (set-visited-file-name new-name)
-      (rename-buffer new-name))))
-
-(defun my/browse-current-file ()
-  "Open the current file using `browse-url`."
-  (interactive)
-  (let ((file-name (buffer-file-name)))
-    (if (and (fboundp 'tramp-tramp-file-p)
-             (tramp-tramp-file-p file-name))
-        (error "Cannot open tramp file")
-      (browse-url (concat "file://" file-name)))))
 
 (provide 'init-utils)
 ;;; init-utils.el ends here

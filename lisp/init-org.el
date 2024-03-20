@@ -9,19 +9,37 @@
   (setq org-link-descriptive 'nil)
   (setq org-babel-python-command "python3")
   (org-babel-do-load-languages
-   'org-babel-load-languages '((python . t))))
+   'org-babel-load-languages '((python . t)))
+  (org-babel-do-load-languages
+   'org-babel-load-languages '((shell . t)))
+  (setq org-display-custom-times t)
+  (setq org-time-stamp-custom-formats '("<%Y-%m-%d %H:%M>" . "<%Y-%m-%d %H:%M:%S>"))
+  (setq org-image-actual-width 'nil)
+  (setq org-cycle-separator-lines -1)
+  (setq org-list-allow-alphabetical t)
+  (setq org-export-with-section-numbers nil))
 
 (use-package ox-html
   :ensure nil
   :defer t
   :config
-  (setq org-html-validation-link nil))
+  (setq org-html-validation-link nil)
+  (setq org-html-postamble t)
+  (setq org-html-postamble-format
+        '(("en" "<p class=\"author\">Author: %a</p>
+<p class=\"date\">Created: %d</p>
+<p class=\"date\">Last Updated: %C</p>"))))
 
 (use-package org-download
   :after org
+  :hook (org-mode . (lambda ()
+                      (setq-local org-download-image-dir
+                                    (concat "./" (file-name-base buffer-file-name) ".assets"))))
   :config
-  (setq-default org-download-heading-lvl nil)
-  (setq-default org-download-image-dir "./images")
+  (setq org-download-heading-lvl nil)
+  (setq org-download-image-attr-list
+        '("#+attr_org: :width 300px"
+          "#+attr_html: :width 50% :align center"))
   (defun dummy-org-download-annotate-function (link) "")
   (setq org-download-annotate-function
         #'dummy-org-download-annotate-function))
@@ -44,20 +62,6 @@
   :config
   (setq calendar-chinese-all-holidays-flag t)
   (setq calendar-week-start-day 1))
-
-;; Reference: https://github.com/tumashu/cnfonts/issues/84
-;; (setq fontset-orgtable
-;;       (create-fontset-from-ascii-font "Monaco 24"))
-;; (dolist (charset '(han symbol cjk-misc))
-;;   (set-fontset-font fontset-orgtable charset
-;; 		    (font-spec :family "Hiragino Sans GB W3"
-;; 			       :size 20)))
-
-(add-hook 'org-mode-hook
-          '(lambda ()
-             (set-face-attribute 'org-table nil
-                                 :font "Ubuntu Mono 15"
-                                 :fontset nil)))
 
 (provide 'init-org)
 ;;; init-org.el ends here

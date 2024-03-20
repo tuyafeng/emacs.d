@@ -4,6 +4,7 @@
 
 (blink-cursor-mode -1)
 (global-display-line-numbers-mode 1)
+(setq-default display-line-numbers-width 3)
 
 (use-package beacon
   :if (display-graphic-p)
@@ -65,10 +66,6 @@
 (global-set-key (kbd "s-v") 'yank)
 (global-set-key (kbd "s-a") 'mark-whole-buffer)
 (global-set-key (kbd "s-x") 'kill-region)
-
-;; (global-set-key (kbd "s-z") 'undo)
-;; (global-set-key (kbd "s-Z") 'undo-redo)
-;; (global-set-key (kbd "s-f") 'isearch)
 (global-set-key (kbd "s-l") 'my/select-current-line)
 
 (defun my/select-current-line (arg)
@@ -87,11 +84,6 @@
   :bind
   ("s-z" . 'undo-fu-only-undo)
   ("s-Z" . 'undo-fu-only-redo))
-
-(use-package consult
-  :commands (consult-line)
-  :bind
-  ("s-f" . 'consult-line))
 
 (use-package hideshow
   :ensure nil
@@ -167,10 +159,6 @@ point reaches the beginning or end of the buffer, stop there."
       (move-beginning-of-line 1))))
 
 (global-set-key (kbd "C-a") 'smarter-move-beginning-of-line)
-
-(use-package disable-mouse
-  :diminish disable-mouse-global-mode
-  :hook (after-init . disable-mouse-global-mode))
 
 (provide 'init-editor)
 ;;; init-editor.el ends here

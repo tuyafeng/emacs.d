@@ -8,7 +8,7 @@
   (setq google-translate-translation-directions-alist
         '(("zh-CN" . "en") ("en" . "zh-CN")))
   :bind
-  ("C-c C-g" . 'google-translate-smooth-translate))
+  ("C-c t" . 'google-translate-smooth-translate))
 
 (provide 'init-google-translate)
 ;;; init-google-translate.el ends here

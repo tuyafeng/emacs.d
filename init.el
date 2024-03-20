@@ -7,11 +7,6 @@
 
 (add-to-list 'load-path (expand-file-name "lisp" user-emacs-directory))
 
-(defconst IS-MAC     (eq system-type 'darwin))
-(defconst IS-LINUX   (eq system-type 'gnu/linux))
-(defconst IS-WINDOWS (memq system-type '(cygwin windows-nt ms-dos)))
-(defconst IS-BSD     (or IS-MAC (eq system-type 'berkeley-unix)))
-
 (add-hook 'emacs-startup-hook
           (lambda ()
             (message "Emacs ready in %s with %d garbage collections."
@@ -57,6 +52,7 @@
 (require 'init-pass)
 (require 'init-mpv)
 (require 'init-google-translate)
+(require 'init-yasnippet)
 
 (provide 'init)
 ;;; init.el ends here

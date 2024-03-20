@@ -7,7 +7,16 @@
   :defer t
   :config
   (setq shr-width 100)
-  (setq eww-search-prefix "https://html.duckduckgo.com/html?q="))
+  (setq eww-search-prefix "https://html.duckduckgo.com/html?q=")
+
+  (defun my/eww-open-url-at-point-with-external-browser ()
+    "Open the URL at point with an external browser."
+    (interactive)
+    (let ((links (eww-links-at-point)))
+      (when links
+        (let ((url (completing-read "Select URL:" links)))
+          (eww-browse-with-external-browser url)))))
+  (define-key eww-mode-map (kbd "o") 'my/eww-open-url-at-point-with-external-browser))
 
 (use-package mb-url
   :defer t

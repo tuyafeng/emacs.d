@@ -29,8 +29,7 @@ DIR must include a .project file to be considered a project."
                                  project-x-local-identifier)
                      (locate-dominating-file dir project-x-local-identifier))))
         (cons 'local root)))
-  (add-hook 'project-find-functions 'project-x-try-local 90)
-  )
+  (add-hook 'project-find-functions 'project-x-try-local 90))
 
 (provide 'init-project)
 ;;; init-project.el ends here
