@@ -16,7 +16,26 @@
       (when links
         (let ((url (completing-read "Select URL:" links)))
           (eww-browse-with-external-browser url)))))
-  (define-key eww-mode-map (kbd "o") 'my/eww-open-url-at-point-with-external-browser))
+  (define-key eww-link-keymap (kbd "o") 'my/eww-open-url-at-point-with-external-browser)
+
+  ;; Reference: https://emacs.stackexchange.com/a/38639
+  (defun my/eww-toggle-images ()
+    "Toggle whether images are loaded and reload the current page from cache."
+    (interactive)
+    (setq-local shr-inhibit-images (not shr-inhibit-images))
+    (eww-reload t)
+    (message "Images are now %s"
+             (if shr-inhibit-images "off" "on")))
+
+  (define-key eww-mode-map (kbd "I") #'my/eww-toggle-images)
+  (define-key eww-link-keymap (kbd "I") #'my/eww-toggle-images)
+
+  ;; Minimal rendering by default
+  (setq-default shr-inhibit-images t)   ; toggle with `I`
+  (setq-default shr-use-fonts nil)      ; toggle with `F`
+
+  (define-key eww-mode-map "[" 'eww-back-url)
+  (define-key eww-mode-map "]" 'eww-forward-url))
 
 (use-package mb-url
   :defer t

@@ -63,5 +63,9 @@
   (setq calendar-chinese-all-holidays-flag t)
   (setq calendar-week-start-day 1))
 
+(use-package ox-hugo
+  :defer t
+  :after ox)
+
 (provide 'init-org)
 ;;; init-org.el ends here

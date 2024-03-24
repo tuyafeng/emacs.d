@@ -3,12 +3,12 @@
 ;;; Code:
 
 (use-package google-translate
-  :defer t
+  :commands (google-translate-smooth-translate)
+  :bind
+  ("C-c t" . 'google-translate-smooth-translate)
   :init
   (setq google-translate-translation-directions-alist
-        '(("zh-CN" . "en") ("en" . "zh-CN")))
-  :bind
-  ("C-c t" . 'google-translate-smooth-translate))
+        '(("zh-CN" . "en") ("en" . "zh-CN"))))
 
 (provide 'init-google-translate)
 ;;; init-google-translate.el ends here

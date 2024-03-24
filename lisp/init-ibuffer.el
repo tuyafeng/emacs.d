@@ -10,5 +10,9 @@
   (dolist (buffer (delq (current-buffer) (buffer-list)))
     (kill-buffer buffer)))
 
+(use-package nerd-icons-ibuffer
+  :after (ibuffer nerd-icons)
+  :hook (ibuffer-mode . nerd-icons-ibuffer-mode))
+
 (provide 'init-ibuffer)
 ;;; init-ibuffer.el ends here

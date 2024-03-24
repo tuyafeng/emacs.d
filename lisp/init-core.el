@@ -25,8 +25,6 @@
 
 (setq idle-update-delay 1.0)
 
-(setq inhibit-compacting-font-caches t)
-
 (setq read-process-output-max (* 64 1024))
 
 (setq redisplay-skip-fontification-on-input t)

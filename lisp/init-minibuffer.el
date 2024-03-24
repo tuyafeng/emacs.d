@@ -12,12 +12,11 @@
   :config
   (setq completion-styles '(orderless)))
 
-(use-package embark
-  :commands (embark-act)
+(use-package nerd-icons-completion
+  :after (marginalia nerd-icons)
   :config
-  (setq prefix-help-command 'embark-prefix-help-command)
-  :bind
-  ("C-;" . 'embark-act))
+  (nerd-icons-completion-mode)
+  (add-hook 'marginalia-mode-hook #'nerd-icons-completion-marginalia-setup))
 
 (provide 'init-minibuffer)
 ;;; init-minibuffer.el ends here

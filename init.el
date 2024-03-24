@@ -18,8 +18,9 @@
 (require 'init-core)
 (require 'init-package)
 
-(require 'init-gui-frames)
 (require 'init-themes)
+(require 'init-gui-frames)
+(require 'init-nerd-icons)
 (require 'init-windows)
 (require 'init-minibuffer)
 (require 'init-mode-line)
@@ -38,7 +39,6 @@
 (require 'init-corfu)
 (require 'init-vterm)
 (require 'init-eglot)
-(require 'init-neotree)
 (require 'init-git)
 
 (require 'init-org)

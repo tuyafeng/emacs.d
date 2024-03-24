@@ -29,6 +29,9 @@
   :config
   (setq dired-omit-files "^\\\..*")
   (setq dired-omit-verbose nil)
+  ;; Diminish dired-omit-mode
+  (advice-add 'dired-omit-startup :after
+              (lambda () (diminish 'dired-omit-mode "")))
   (setq dired-clean-confirm-killing-deleted-buffers nil)
   (when-let (cmd (cond ((eq system-type 'darwin) "open")
                        ((eq system-type 'gnu/linux) "xdg-open")
@@ -56,15 +59,44 @@
 (use-package fd-dired
   :defer t)
 
-(use-package osx-trash
-  :if (eq system-type 'darwin)
-  :init (osx-trash-setup))
+;; In Emacs 29 the NS port will have a system trash implementation:
+;; https://github.com/emacs-mirror/emacs/commit/796075ef7e1c7a294fe8c3c36c999c10c2f09d38
+(when (and (< emacs-major-version 29) (eq system-type 'darwin))
+  (use-package osx-trash
+    :after dired
+    :config
+    (osx-trash-setup)))
 
 (use-package doc-view
   :ensure nil
   :defer t
   :config
   (setq doc-view-resolution 300))
+
+(use-package dired-sidebar
+  :bind (("C-x C-n" . dired-sidebar-toggle-sidebar))
+  :commands (dired-sidebar-toggle-sidebar)
+  :config
+  (push 'toggle-window-split dired-sidebar-toggle-hidden-commands)
+  (push 'rotate-windows dired-sidebar-toggle-hidden-commands)
+  (setq dired-sidebar-subtree-line-prefix "  ")
+  (setq dired-sidebar-theme 'nerd)
+  (setq dired-sidebar-use-term-integration t)
+  (setq dired-sidebar-width 30)
+  (defun my/dired-sidebar-mode-hook ()
+    ;; Don't wrap lines
+    (visual-line-mode -1)
+    ;; Hide line numbers
+    (display-line-numbers-mode -1)
+    ;; Refresh buffer when visiting local directory.
+    (unless (file-remote-p default-directory)
+      (auto-revert-mode)))
+  (add-hook 'dired-sidebar-mode-hook #'my/dired-sidebar-mode-hook))
+
+(use-package nerd-icons-dired
+  :after (dired nerd-icons)
+  :hook (dired-mode . nerd-icons-dired-mode)
+  :diminish nerd-icons-dired-mode)
 
 ;; Use space to quicklook file on macOS
 (when (eq system-type 'darwin)

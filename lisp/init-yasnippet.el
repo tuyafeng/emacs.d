@@ -4,8 +4,7 @@
 
 (use-package yasnippet
   :diminish yas-minor-mode
-  :config
-  (yas-global-mode 1))
+  :hook (after-init . yas-global-mode))
 
 (provide 'init-yasnippet)
 ;;; init-yasnippet.el ends here
