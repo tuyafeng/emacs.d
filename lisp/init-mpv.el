@@ -4,12 +4,12 @@
 
 (use-package mpv
   :commands (mpv-play my/mpv-play-music)
-  :hook
-  (find-file . (lambda ()
-                 (when (string= (file-name-extension buffer-file-name) "m3u")
-                   (local-set-key (kbd "C-<return>") 'my/mpv-play-music)
-                   (read-only-mode 1))))
   :config
+  (defun my/mpv-find-file-hook()
+    (when (string= (file-name-extension buffer-file-name) "m3u")
+                   (local-set-key (kbd "C-<return>") 'my/mpv-play-music)
+                   (read-only-mode 1)))
+  (add-hook 'find-file-hook #'my/mpv-find-file-hook)
   (defun my/mpv-play-music ()
     "Play music with mpv"
     (interactive)

@@ -60,14 +60,15 @@
 
 ;; Load PATH from ~/.path, get your path by executing:
 ;; $ echo $PATH > ~/.path
-(condition-case err
+(unless (eq system-type 'windows-nt)
+  (condition-case err
     (let
         ((path (with-temp-buffer
                  (insert-file-contents-literally "~/.path")
                  (buffer-string))))
       (setenv "PATH" path)
       (setq exec-path (append (parse-colon-path path) (list exec-directory))))
-  (error (warn "%s" (error-message-string err))))
+  (error (warn "%s" (error-message-string err)))))
 
 (provide 'init-core)
 ;;; init-core.el ends here

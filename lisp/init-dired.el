@@ -29,13 +29,13 @@
   :config
   (setq dired-omit-files "^\\\..*")
   (setq dired-omit-verbose nil)
-  ;; Diminish dired-omit-mode
-  (advice-add 'dired-omit-startup :after
-              (lambda () (diminish 'dired-omit-mode "")))
+  (defun my/dired-omit-startup-after-advice()
+    (diminish 'dired-omit-mode ""))
+  (advice-add 'dired-omit-startup :after 'my/dired-omit-startup-after-advice)
   (setq dired-clean-confirm-killing-deleted-buffers nil)
   (when-let (cmd (cond ((eq system-type 'darwin) "open")
                        ((eq system-type 'gnu/linux) "xdg-open")
-                       ((eq system-type 'windows-ns) "start")))
+                       ((eq system-type 'windows-nt) "start")))
     (setq dired-guess-shell-alist-user
           `(("\\.\\(?:docx\\|pdf\\|djvu\\|eps\\)\\'" ,cmd)
             ("\\.\\(?:jpe?g\\|png\\|gif\\|xpm\\)\\'" ,cmd)
@@ -53,8 +53,9 @@
               ("TAB" . dired-subtree-toggle))
   :config
   ;; Revert buffer after subtree toggle
-  (advice-add 'dired-subtree-toggle :after
-              (lambda () (revert-buffer))))
+  (defun my/dired-subtree-toggle-after-advice()
+    (revert-buffer))
+  (advice-add 'dired-subtree-toggle :after #'my/dired-subtree-toggle-after-advice))
 
 (use-package fd-dired
   :defer t)
@@ -104,7 +105,7 @@
     "Use QuickLook to preview current file."
     (interactive)
     (let ((file (if (derived-mode-p 'dired-mode)
-                    (dired-copy-filename-as-kill)
+                    (dired-get-filename)
                   (buffer-file-name))))
       (when file
         (start-process "quicklook" nil "qlmanage" "-p" file))))

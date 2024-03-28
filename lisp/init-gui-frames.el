@@ -2,7 +2,8 @@
 ;;; Commentary:
 ;;; Code:
 
-(set-face-attribute 'default nil :family "Menlo" :height 160)
+(let ((font-size (if (eq system-type 'windows-nt) 130 160)))
+  (set-face-attribute 'default nil :family "Menlo" :height font-size))
 (setq-default line-spacing 0.3)
 
 ;; Moved to early-init.el

@@ -9,11 +9,12 @@
              whitespace-newline-mode)
   :hook
   ((prog-mode markdown-mode org-mode) . whitespace-mode)
-  (before-save . (lambda ()
-                   (when (derived-mode-p 'prog-mode 'markdown-mode 'org-mode)
-                     (delete-trailing-whitespace))))
   :config
-  (setq whitespace-style '(face trailing)))
+  (setq whitespace-style '(face trailing))
+  (defun my/whitespace-before-save-hook()
+    (when (derived-mode-p 'prog-mode 'markdown-mode 'org-mode)
+      (delete-trailing-whitespace)))
+  (add-hook 'before-save-hook #'my/whitespace-before-save-hook))
 
 (provide 'init-whitespace)
 ;;; init-whitespace.el ends here

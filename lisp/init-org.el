@@ -32,9 +32,6 @@
 
 (use-package org-download
   :after org
-  :hook (org-mode . (lambda ()
-                      (setq-local org-download-image-dir
-                                    (concat "./" (file-name-base buffer-file-name) ".assets"))))
   :config
   (setq org-download-heading-lvl nil)
   (setq org-download-image-attr-list
@@ -42,7 +39,11 @@
           "#+attr_html: :width 50% :align center"))
   (defun dummy-org-download-annotate-function (link) "")
   (setq org-download-annotate-function
-        #'dummy-org-download-annotate-function))
+        #'dummy-org-download-annotate-function)
+  (defun my/org-download-org-mode-hook()
+    (setq-local org-download-image-dir
+                (concat "./" (file-name-base buffer-file-name) ".assets")))
+  (add-hook 'org-mode-hook #'my/org-download-org-mode-hook))
 
 (use-package plantuml-mode
   :when (file-exists-p "~/data/system/plantuml/plantuml-1.2022.5.jar")

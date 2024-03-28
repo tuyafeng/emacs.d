@@ -5,11 +5,12 @@
 (use-package epa-file
   :ensure nil
   :defer t
-  :hook (kill-emacs . (lambda ()
-                        (shell-command "pkill gpg-agent")))
   :config
   (epa-file-enable)
-  (setq epa-pinentry-mode 'loopback))
+  (setq epa-pinentry-mode 'loopback)
+  (defun my/epa-file-kill-emacs-hook()
+    (shell-command "pkill gpg-agent"))
+  (add-hook 'kill-emacs-hook #'my/epa-file-kill-emacs-hook))
 
 (use-package pass
   :commands (pass my/pass-preheat)

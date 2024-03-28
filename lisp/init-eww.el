@@ -38,12 +38,13 @@
   (define-key eww-mode-map "]" 'eww-forward-url))
 
 (use-package mb-url
-  :defer t
-  :commands (mb-url-http-around-advice)
-  :init
+  :config
   (setq mb-url-http-backend 'mb-url-http-curl
         mb-url-http-curl-switches `("--max-time" "20" "-x" ,"socks5h://127.0.0.1:1090"))
-  (advice-add 'url-http :around 'mb-url-http-around-advice))
+  (defun my/mb-url-emacs-startup-hook ()
+    (advice-add 'url-http :around 'mb-url-http-around-advice))
+  ;; Set proxy after emacs startup
+  (add-hook 'emacs-startup-hook #'my/mb-url-emacs-startup-hook))
 
 (provide 'init-eww)
 ;;; init-eww.el ends here

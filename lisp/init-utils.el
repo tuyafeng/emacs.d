@@ -44,5 +44,16 @@
   (interactive)
   (async-shell-command "scrcpy --hid-keyboard  --always-on-top  --window-width 340 --shortcut-mod=rctrl+rsuper"))
 
+(when (eq system-type 'darwin)
+  (defun my/reveal-current-file-in-finder ()
+    "Reveal current file in Finder."
+    (interactive)
+    (let ((file (if (derived-mode-p 'dired-mode)
+                    (or (dired-get-filename nil 'noerror) (dired-current-directory))
+                  (buffer-file-name))))
+      (if file
+          (shell-command (format "open -R %s" (shell-quote-argument file)))
+        (shell-command "open .")))))
+
 (provide 'init-utils)
 ;;; init-utils.el ends here
