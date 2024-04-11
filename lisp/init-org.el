@@ -13,7 +13,8 @@
   (org-babel-do-load-languages
    'org-babel-load-languages '((shell . t)))
   (setq org-display-custom-times t)
-  (setq org-time-stamp-custom-formats '("<%Y-%m-%d %H:%M>" . "<%Y-%m-%d %H:%M:%S>"))
+  (setq org-time-stamp-custom-formats
+        '("<%Y-%m-%d %H:%M>" . "<%Y-%m-%d %H:%M:%S>"))
   (setq org-image-actual-width 'nil)
   (setq org-cycle-separator-lines -1)
   (setq org-list-allow-alphabetical t)
@@ -41,21 +42,10 @@
   (setq org-download-annotate-function
         #'dummy-org-download-annotate-function)
   (defun my/org-download-org-mode-hook()
-    (setq-local org-download-image-dir
-                (concat "./" (file-name-base buffer-file-name) ".assets")))
+    (when buffer-file-name
+      (setq-local org-download-image-dir
+                  (concat "./" (file-name-base buffer-file-name) ".assets"))))
   (add-hook 'org-mode-hook #'my/org-download-org-mode-hook))
-
-(use-package plantuml-mode
-  :when (file-exists-p "~/data/system/plantuml/plantuml-1.2022.5.jar")
-  :after org
-  :config
-  (setq plantuml-default-exec-mode 'jar)
-  (setq plantuml-jar-path
-        (expand-file-name "~/data/system/plantuml/plantuml-1.2022.5.jar"))
-  (setq plantuml-output-type "png")
-  (with-eval-after-load "org"
-    (add-to-list 'org-src-lang-modes '("plantuml" . plantuml)))
-  (org-babel-do-load-languages 'org-babel-load-languages '((plantuml . t))))
 
 (use-package calendar
   :ensure nil

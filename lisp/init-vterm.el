@@ -2,17 +2,12 @@
 ;;; Commentary:
 ;;; Code:
 
-(when (eq system-type 'darwin)
-  (use-package vterm
-    :commands (vterm vterm-other-window)
-    :init
-    (setq vterm-shell "zsh")
-    :config
-    (setq vterm-always-compile-module t)
-    (defun my/vterm-mode-hook ()
-      ;; Hide line numbers
-      (display-line-numbers-mode -1))
-    (add-hook 'vterm-mode-hook #'my/vterm-mode-hook)))
+(use-package vterm
+  :defer t
+  :init
+  (setq vterm-shell "zsh")
+  :config
+  (setq vterm-always-compile-module t))
 
 (provide 'init-vterm)
 ;;; init-vterm.el ends here

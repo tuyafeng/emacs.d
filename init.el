@@ -2,10 +2,9 @@
 ;;; Commentary:
 ;;; Code:
 
-(when (version< emacs-version "25")
-  (warn "This configuration needs Emacs trunk, but this is %s!" emacs-version))
-
-(add-to-list 'load-path (expand-file-name "lisp" user-emacs-directory))
+(let ((minver "26.1"))
+  (when (version< emacs-version minver)
+    (error "Emacs v%s or higher is required" minver)))
 
 (add-hook 'emacs-startup-hook
           (lambda ()
@@ -14,6 +13,8 @@
                              (float-time
                               (time-subtract after-init-time before-init-time)))
                      gcs-done)))
+
+(add-to-list 'load-path (expand-file-name "lisp" user-emacs-directory))
 
 (require 'init-core)
 (require 'init-package)
@@ -37,7 +38,8 @@
 (require 'init-utils)
 
 (require 'init-corfu)
-(require 'init-vterm)
+(unless (eq system-type 'windows-nt)
+ (require 'init-vterm))
 (require 'init-eglot)
 (require 'init-git)
 
@@ -53,6 +55,11 @@
 (require 'init-mpv)
 (require 'init-google-translate)
 (require 'init-yasnippet)
+(require 'init-nov)
+(require 'init-android)
+
+(when (file-exists-p custom-file)
+  (load custom-file))
 
 (provide 'init)
 ;;; init.el ends here

@@ -2,7 +2,8 @@
 ;;; Commentary:
 ;;; Code:
 
-(use-package python-mode
+(use-package python
+  :ensure nil
   :defer t)
 
 (provide 'init-python)

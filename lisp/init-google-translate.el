@@ -5,10 +5,13 @@
 (use-package google-translate
   :commands (google-translate-smooth-translate)
   :bind
-  ("C-c t" . 'google-translate-smooth-translate)
+  ("C-x C-t" . 'google-translate-smooth-translate)
   :init
   (setq google-translate-translation-directions-alist
-        '(("zh-CN" . "en") ("en" . "zh-CN"))))
+        '(("zh-CN" . "en")
+          ("en" . "zh-CN")
+          ("auto" . "en")
+          ("auto" . "zh-CN"))))
 
 (provide 'init-google-translate)
 ;;; init-google-translate.el ends here

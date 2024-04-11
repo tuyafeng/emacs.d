@@ -16,11 +16,32 @@
         (setq args (list (car args))
               dired-use-ls-dired nil)))
     (setq dired-listing-switches (string-join args " ")))
+
   (setq dired-recursive-copies 'always)
   (setq dired-recursive-deletes 'always)
   (setq dired-dwim-target t)
   (set-face-bold 'dired-directory t)
-  (setq delete-by-moving-to-trash t))
+  (setq delete-by-moving-to-trash t)
+  (setq dired-kill-when-opening-new-dired-buffer t)
+
+  ;; Remeber `dired-hide-details-mode`
+  (setq my/dired-hide-details-mode-value -1)
+
+  (defun my/dired-hide-details-mode-hook ()
+    (when (eq major-mode 'dired-mode)
+      (dired-hide-details-mode my/dired-hide-details-mode-value)))
+
+  (add-hook 'dired-after-readin-hook #'my/dired-hide-details-mode-hook)
+
+  (defun my/dired-toggle-dired-hide-details-mode ()
+    "Toggle `dired-hide-details-mode` and remember its state."
+    (interactive)
+    (setq my/dired-hide-details-mode-value
+          (if (= my/dired-hide-details-mode-value 1) -1 1))
+    (my/dired-hide-details-mode-hook))
+
+  (define-key dired-mode-map (kbd "(")
+              #'my/dired-toggle-dired-hide-details-mode))
 
 (use-package dired-x
   :ensure nil
@@ -87,8 +108,6 @@
   (defun my/dired-sidebar-mode-hook ()
     ;; Don't wrap lines
     (visual-line-mode -1)
-    ;; Hide line numbers
-    (display-line-numbers-mode -1)
     ;; Refresh buffer when visiting local directory.
     (unless (file-remote-p default-directory)
       (auto-revert-mode)))
@@ -110,7 +129,7 @@
       (when file
         (start-process "quicklook" nil "qlmanage" "-p" file))))
   (with-eval-after-load 'dired
-    (define-key dired-mode-map (kbd "SPC") 'my/quicklook-file)))
+    (define-key dired-mode-map (kbd "SPC") #'my/quicklook-file)))
 
 (provide 'init-dired)
 ;;; init-dired.el ends here

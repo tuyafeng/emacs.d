@@ -2,14 +2,18 @@
 ;;; Commentary:
 ;;; Code:
 
-(let ((font-size (if (eq system-type 'windows-nt) 130 160)))
-  (set-face-attribute 'default nil :family "Menlo" :height font-size))
-(setq-default line-spacing 0.3)
+(let ((font-size (if (eq system-type 'windows-nt) 130 160))
+      (default-font-faimly "Menlo")
+      (cjk-font-faimly "PingFang SC"))
+  (set-face-attribute 'default nil
+                      :family default-font-faimly
+                      :height font-size)
+  (dolist (charset '(kana han symbol cjk-misc bopomofo))
+    (set-fontset-font (frame-parameter nil 'font)
+                      charset
+                      (font-spec :family cjk-font-faimly :height font-size))))
 
-;; Moved to early-init.el
-;; (push '(menu-bar-lines . 0) default-frame-alist)
-;; (push '(tool-bar-lines . 0) default-frame-alist)
-;; (push '(vertical-scroll-bars) default-frame-alist)
+(setq-default line-spacing 0.3)
 
 (setq use-file-dialog nil)
 (setq use-dialog-box nil)

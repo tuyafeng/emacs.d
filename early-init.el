@@ -2,13 +2,6 @@
 ;;; Commentary:
 ;;; Code:
 
-(when (or (featurep 'esup-child)
-          (fboundp 'profile-dotemacs)
-          (daemonp)
-          (boundp 'startup-now)
-          noninteractive)
-  (setq package-enable-at-startup nil))
-
 ;; Reference: https://www.reddit.com/r/emacs/comments/ofhket/further_boost_start_up_time_with_a_simple_tweak/
 (let ((normal-gc-cons-threshold (* 32 1024 1024))
       (init-gc-cons-threshold (* 128 1024 1024))
@@ -20,9 +13,12 @@
                              file-name-handler-alist default-file-name-handler-alist
                              ))))
 
-(push '(menu-bar-lines . 0) default-frame-alist)
-(push '(tool-bar-lines . 0) default-frame-alist)
-(push '(vertical-scroll-bars) default-frame-alist)
+(setq default-frame-alist
+      '((menu-bar-lines . 0)
+        (tool-bar-lines . 0)
+        (internal-border-width . 0)
+        (horizontal-scroll-bars)
+        (vertical-scroll-bars)))
 
 (provide 'early-init)
 ;;; early-init.el ends here

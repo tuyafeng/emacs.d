@@ -31,7 +31,7 @@
       (set-window-buffer (next-window) other-buffer))))
 
 (global-set-key (kbd "C-x |") 'split-window-horizontally-instead)
-(global-set-key (kbd "C-x -") 'split-window-vertically-instead)
+(global-set-key (kbd "C-x _") 'split-window-vertically-instead)
 
 (provide 'init-windows)
 ;;; init-windows.el ends here

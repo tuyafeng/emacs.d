@@ -2,14 +2,24 @@
 ;;; Commentary:
 ;;; Code:
 
-(blink-cursor-mode -1)
-(global-display-line-numbers-mode 1)
-(setq-default display-line-numbers-width 3)
+(use-package emacs
+  :ensure nil
+  :hook (prog-mode . display-fill-column-indicator-mode)
+  :config
+  (setq-default fill-column 79)
+  (setq word-wrap-by-category t
+        display-fill-column-indicator-character ?\u254e))
 
-(use-package beacon
-  :if (display-graphic-p)
-  :diminish beacon-mode
-  :hook (after-init . beacon-mode))
+(use-package frame
+  :ensure nil
+  :config
+  (blink-cursor-mode -1))
+
+(use-package display-line-numbers
+  :ensure nil
+  :hook (prog-mode . display-line-numbers-mode)
+  :config
+  (setq-default display-line-numbers-width 2))
 
 (use-package hl-line
   :ensure nil
@@ -210,6 +220,18 @@ The value is actually a list containing the original local map as element.")
 
 ;; `find-file-noselect' sets `buffer-read-only' directly:
 (add-hook 'find-file-hook #'wo-ctrl-c-when-read-only)
+
+(when (eq system-type 'darwin)
+  (use-package emt
+    :ensure nil
+    :diminish emt-mode
+    :quelpa
+    (emt :fetcher github :repo "roife/emt" :files ("*.el" "module/*" "module") :upgrade nil)
+    :hook (after-init . emt-mode)
+    :config
+    (setq emt-lib-path (expand-file-name
+                        "quelpa/build/emt/module/.build/release/libEMT.dylib"
+                        user-emacs-directory))))
 
 (provide 'init-editor)
 ;;; init-editor.el ends here

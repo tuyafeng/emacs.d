@@ -19,9 +19,5 @@
   (lazy-count-prefix-format nil)
   (lazy-count-suffix-format " [%s/%s]"))
 
-(use-package rg
-  :commands (rg-menu)
-  :bind ("C-c s" . 'rg-menu))
-
 (provide 'init-isearch)
 ;;; init-isearch.el ends here

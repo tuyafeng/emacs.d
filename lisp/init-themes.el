@@ -21,7 +21,12 @@
         ('light (load-theme 'modus-operandi :no-confirm))
         ('dark (load-theme 'modus-vivendi :no-confirm))))
     (add-hook 'ns-system-appearance-change-functions #'my/apply-theme))
-  (define-key global-map (kbd "<f5>") #'modus-themes-toggle))
+  (define-key global-map (kbd "<f5>") #'modus-themes-toggle)
+  ;; Make the fill-column-indicator thinner.
+  ;; Reference: https://protesilaos.com/emacs/modus-themes#h:2a602816-bc1b-45bf-9675-4cbbd7bf6cab
+  (modus-themes-with-colors
+    (custom-set-faces
+     `(fill-column-indicator ((,c :height 0.1))))))
 
 (provide 'init-themes)
 ;;; init-themes.el ends here

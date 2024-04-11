@@ -3,9 +3,7 @@
 ;;; Code:
 
 (use-package csv-mode
-  :defer t
-  :hook ((csv-mode . csv-align-mode)
-         (csv-mode . read-only-mode)))
+  :defer t)
 
 (provide 'init-csv)
 ;;; init-csv.el ends here

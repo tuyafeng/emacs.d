@@ -2,6 +2,16 @@
 ;;; Commentary:
 ;;; Code:
 
+(use-package ibuffer
+  :ensure nil
+  :bind
+  ("C-x C-b" . 'ibuffer)
+  :commands (ibuffer)
+  :config
+  (setq ibuffer-use-other-window t))
+
+(eq (next-window) (selected-window))
+
 (global-set-key (kbd "s-w") 'kill-current-buffer)
 
 (defun my/kill-other-buffers ()

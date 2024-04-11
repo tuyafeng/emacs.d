@@ -13,6 +13,14 @@
               bidi-paragraph-direction 'left-to-right)
 (setq bidi-inhibit-bpa t)
 
+;; Disabled RTL support to optimize the display of extremely long text lines.
+;; Reference: https://emacs-china.org/t/topic/25811/9
+(defun my/find-file-disable-rtl-hook ()
+  "Disabled RTL support when editing files."
+  (setq bidi-display-reordering nil
+        bidi-paragraph-direction nil))
+(add-hook 'find-file-hook #'my/find-file-disable-rtl-hook)
+
 (setq-default cursor-in-non-selected-windows nil)
 
 (setq highlight-nonselected-windows nil)
@@ -41,9 +49,6 @@
   (setq command-line-x-option-alist nil))
 
 (setq ad-redefinition-action 'accept)
-
-(setq debug-on-error init-file-debug
-      jka-compr-verbose init-file-debug)
 
 (setq inhibit-startup-screen t
       inhibit-startup-echo-area-message user-login-name

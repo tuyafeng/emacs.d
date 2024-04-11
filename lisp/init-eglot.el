@@ -3,6 +3,7 @@
 ;;; Code:
 
 (use-package eglot
+  :defer t
   :hook
   (python-mode . eglot-ensure)
   (dart-mode . eglot-ensure)
