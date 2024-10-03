@@ -4,10 +4,13 @@
 
 (use-package eww
   :ensure nil
-  :commands (my/eww-visit-bookmark eww)
+  :commands (my/eww-visit-bookmark eww eww-browser-url)
+  :init
+  (setq browse-url-browser-function #'eww-browse-url)
   :config
   (setq shr-max-width 100
-        eww-search-prefix "https://html.duckduckgo.com/html?q=")
+        ;; eww-search-prefix "https://html.duckduckgo.com/html?q="
+        eww-search-prefix "https://www.google.com/search?sca_upv=1&gbv=1&q=")
 
   (defun my/eww-open-url-at-point-with-external-browser ()
     "Open the URL at point with an external browser."
@@ -48,6 +51,8 @@
 
   (define-key eww-mode-map (kbd "[") #'eww-back-url)
   (define-key eww-mode-map (kbd "]") #'eww-forward-url)
+  (define-key eww-mode-map (kbd "<mouse-4>") #'eww-back-url)
+  (define-key eww-mode-map (kbd "<mouse-3>") #'eww-forward-url)
 
   (defun my/eww-rename-buffer ()
     (when (eq major-mode 'eww-mode)
@@ -74,9 +79,9 @@
                                           (equal url (plist-get bookmark :url)))
                                         eww-bookmarks))
       (push (list :url url
-		          :title title
-		          :time (current-time-string))
-	        eww-bookmarks)
+                  :title title
+                  :time (current-time-string))
+            eww-bookmarks)
       (eww-write-bookmarks)
       (message "Bookmarked %s (%s)" url title)))
   (define-key eww-mode-map (kbd "b") #'my/eww-add-bookmark)
@@ -96,6 +101,7 @@
   (define-key eww-mode-map (kbd "L") #'eww-list-bookmarks))
 
 (use-package eww-url
+  :commands (eww-url-list-urls)
   :after eww
   :load-path "site-lisp/eww-url")
 
@@ -105,6 +111,8 @@
   (setq mb-url-http-curl-default-switches
         '("--max-time" "5" "--user-agent" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
         mb-url-http-curl-switches mb-url-http-curl-default-switches)
+  (with-eval-after-load 'elfeed
+    (setq elfeed-curl-extra-arguments mb-url-http-curl-switches))
   (defun my/mb-url-toggle-proxy ()
     "Toggle whether proxy is enabled."
     (interactive)
@@ -115,13 +123,22 @@
         (push proxy switches)
         (push "-x" switches))
       (setq mb-url-http-curl-switches switches)
+      (with-eval-after-load 'elfeed
+        (setq elfeed-curl-extra-arguments mb-url-http-curl-switches))
       (message "Proxy is now %s"
                (if (member "-x" switches) "enabled" "disabled"))))
   (with-eval-after-load 'eww
     (define-key eww-mode-map "P" 'my/mb-url-toggle-proxy))
   (defun my/mb-url-emacs-startup-hook ()
     (advice-add 'url-http :around 'mb-url-http-around-advice))
-  (add-hook 'emacs-startup-hook #'my/mb-url-emacs-startup-hook))
+  (add-hook 'emacs-startup-hook #'my/mb-url-emacs-startup-hook)
+  (defun my/hide-mb-url-buffers ()
+    "Hide buffers starting with *mb-url- in the buffer list."
+    (dolist (buffer (buffer-list))
+      (with-current-buffer buffer
+        (when (string-prefix-p "*mb-url-" (buffer-name))
+          (rename-buffer (concat " " (buffer-name)) 'unique)))))
+  (add-hook 'buffer-list-update-hook 'my/hide-mb-url-buffers))
 
 (provide 'init-eww)
 ;;; init-eww.el ends here

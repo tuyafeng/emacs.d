@@ -42,3 +42,6 @@
 
 .DS_Store
 .session
+/elpa-*
+/quelpa-*
+/.vscode/

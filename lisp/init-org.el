@@ -15,6 +15,8 @@
   (setq org-display-custom-times t)
   (setq org-time-stamp-custom-formats
         '("<%Y-%m-%d %H:%M>" . "<%Y-%m-%d %H:%M:%S>"))
+  (setq org-log-into-drawer t)
+  (setq org-export-with-drawers '("LOGBOOK"))
   (setq org-image-actual-width 'nil)
   (setq org-cycle-separator-lines -1)
   (setq org-list-allow-alphabetical t)
@@ -36,13 +38,15 @@
   :config
   (setq org-download-heading-lvl nil)
   (setq org-download-image-attr-list
-        '("#+attr_org: :width 300px"
+        '("#+caption: caption"
+          "#+attr_org: :width 300px"
           "#+attr_html: :width 50% :align center"))
   (defun dummy-org-download-annotate-function (link) "")
   (setq org-download-annotate-function
         #'dummy-org-download-annotate-function)
   (defun my/org-download-org-mode-hook()
     (when buffer-file-name
+      (setq-local org-download-heading-lvl nil)
       (setq-local org-download-image-dir
                   (concat "./" (file-name-base buffer-file-name) ".assets"))))
   (add-hook 'org-mode-hook #'my/org-download-org-mode-hook))

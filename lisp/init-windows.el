@@ -2,14 +2,15 @@
 ;;; Commentary:
 ;;; Code:
 
-(use-package switch-window
-  :commands (switch-window)
-  :bind
-  ("C-x o" . 'switch-window)
+(use-package winner
+  :ensure nil
+  :hook (after-init . winner-mode)
   :config
-  (setq switch-window-shortcut-style 'qwerty)
-  (setq switch-window-timeout nil)
-  (setq switch-window-minibuffer-shortcut ?z))
+  (setq winner-dont-bind-my-keys t)
+  (setq winner-repeat-map
+        '(keymap (?u . winner-redo) (?r . winner-undo)))
+  (global-set-key (kbd "C-c u") 'winner-undo)
+  (global-set-key (kbd "C-c r") 'winner-redo))
 
 ;; Reference: https://github.com/purcell/emacs.d/blob/master/lisp/init-windows.el
 (defun split-window-horizontally-instead ()

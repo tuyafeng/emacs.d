@@ -25,7 +25,7 @@
   (setq dired-kill-when-opening-new-dired-buffer t)
 
   ;; Remeber `dired-hide-details-mode`
-  (setq my/dired-hide-details-mode-value -1)
+  (setq my/dired-hide-details-mode-value 1)
 
   (defun my/dired-hide-details-mode-hook ()
     (when (eq major-mode 'dired-mode)
@@ -47,6 +47,8 @@
   :ensure nil
   :after dired
   :hook (dired-mode . dired-omit-mode)
+  :bind (:map dired-mode-map
+              ("s->" . dired-omit-mode))
   :config
   (setq dired-omit-files "^\\\..*")
   (setq dired-omit-verbose nil)
@@ -130,6 +132,47 @@
         (start-process "quicklook" nil "qlmanage" "-p" file))))
   (with-eval-after-load 'dired
     (define-key dired-mode-map (kbd "SPC") #'my/quicklook-file)))
+
+;; Reference: https://github.com/gmoutso/dotemacs/blob/93649716da46497dd79d07e06a30e694b9207a2b/lisp/variousrc.el
+(defun my/copy-file-to-clipboard (&optional file)
+  "Copy file at point to clipboard."
+  (interactive)
+  (let ((file (or file (if (derived-mode-p 'dired-mode)
+                           (dired-get-file-for-visit)
+                         (buffer-file-name)))))
+    (when (and file (file-regular-p file))
+      (cond
+       ((eq system-type 'windows-nt)
+        (message "Not supported yet."))
+       ((eq system-type 'darwin)
+        (do-applescript
+         (format "set the clipboard to POSIX file \"%s\"" (expand-file-name file))))
+       ((eq system-type 'gnu/linux)
+        (call-process-shell-command
+         (format "xclip -selection clipboard -t %s -i %s"
+                 (mailcap-extension-to-mime (file-name-extension file))
+                 file))))
+      (message "Copied %s" file))))
+
+(defun my/reveal-current-file-externally ()
+  "Reveal current file in system file manager."
+  (interactive)
+  (when-let ((file (if (derived-mode-p 'dired-mode)
+                       (or (dired-get-filename nil 'noerror)
+                           (dired-current-directory))
+                     (buffer-file-name))))
+    (cond
+     ((eq system-type 'windows-nt)
+      (shell-command
+       (format "explorer /select, %s"
+               (string-replace "/" "\\" (shell-quote-argument file)))))
+     ((eq system-type 'darwin)
+      (shell-command
+       (format "open -R %s" (shell-quote-argument file))))
+     (t
+      (if (featurep 'embark)
+          (embark-open-externally (file-name-directory file))
+        (message (format "Cannot reveal file at %s" file)))))))
 
 (provide 'init-dired)
 ;;; init-dired.el ends here

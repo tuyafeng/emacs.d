@@ -20,5 +20,7 @@
         (horizontal-scroll-bars)
         (vertical-scroll-bars)))
 
+(setq package-enable-at-startup nil)
+
 (provide 'early-init)
 ;;; early-init.el ends here

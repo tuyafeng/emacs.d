@@ -2,12 +2,17 @@
 ;;; Commentary:
 ;;; Code:
 
+(setq package-user-dir
+      (expand-file-name (format "elpa-%s.%s" emacs-major-version emacs-minor-version)
+                        user-emacs-directory))
+
 (require 'package)
 
 (setq package-enable-at-startup nil)
 (setq package-archives
       '(("gnu"   . "https://mirrors.tuna.tsinghua.edu.cn/elpa/gnu/")
         ("melpa" . "https://mirrors.tuna.tsinghua.edu.cn/elpa/melpa/")))
+(package-initialize)
 
 (let ((package-selected-packages '(use-package diminish)))
   (when (cl-find-if-not #'package-installed-p package-selected-packages)
@@ -38,7 +43,10 @@
   :init
   (setq quelpa-update-melpa-p nil
         quelpa-checkout-melpa-p nil
-        quelpa-git-clone-depth 1))
+        quelpa-git-clone-depth 1)
+  (setq quelpa-dir
+      (expand-file-name (format "quelpa-%s.%s" emacs-major-version emacs-minor-version)
+                        user-emacs-directory)))
 
 (provide 'init-package)
 ;;; init-package.el ends here

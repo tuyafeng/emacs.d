@@ -31,8 +31,7 @@
      telega-symbols-emojify (assq-delete-all 'checkmark telega-symbols-emojify)
      telega-symbols-emojify (assq-delete-all 'heavy-checkmark telega-symbols-emojify)
      telega-symbol-checkmark (nerd-icons-mdicon "nf-md-check")
-     telega-symbol-heavy-checkmark (nerd-icons-mdicon "nf-md-check_all")
-     )))
+     telega-symbol-heavy-checkmark (nerd-icons-mdicon "nf-md-check_all"))))
 
 (provide 'init-telega)
 ;;; init-telega.el ends here
