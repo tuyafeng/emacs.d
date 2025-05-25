@@ -131,7 +131,9 @@
   :hook (after-init . show-paren-mode)
   :config
   (setq show-paren-when-point-inside-paren t
-        show-paren-when-point-in-periphery t))
+        show-paren-when-point-in-periphery t
+        show-paren-context-when-offscreen t
+        blink-matching-paren-highlight-offscreen t))
 
 (use-package elec-pair
   :ensure nil
@@ -178,17 +180,17 @@ point reaches the beginning or end of the buffer, stop there."
 
 (global-set-key (kbd "C-a") 'smarter-move-beginning-of-line)
 
-(when (eq system-type 'darwin)
+(when (and (>= emacs-major-version 30)
+           (eq system-type 'darwin))
   (use-package emt
-    :ensure nil
+    :vc (emt :url "https://github.com/roife/emt"
+             :rev "v2.1.0")
     :diminish emt-mode
-    :quelpa
-    (emt :fetcher github :repo "roife/emt" :files ("*.el" "module/*" "module") :upgrade nil)
     :hook (after-init . emt-mode)
     :config
     (setq emt-lib-path (expand-file-name
                         "emt/module/.build/release/libEMT.dylib"
-                        quelpa-build-dir))))
+                        package-user-dir))))
 
 (use-package repeat
   :when (>= emacs-major-version 28)

@@ -13,14 +13,16 @@
                              file-name-handler-alist default-file-name-handler-alist
                              ))))
 
+(setq package-user-dir
+      (expand-file-name (format "elpa-%s.%s" emacs-major-version emacs-minor-version)
+                        user-emacs-directory))
+
 (setq default-frame-alist
       '((menu-bar-lines . 0)
         (tool-bar-lines . 0)
         (internal-border-width . 0)
         (horizontal-scroll-bars)
         (vertical-scroll-bars)))
-
-(setq package-enable-at-startup nil)
 
 (provide 'early-init)
 ;;; early-init.el ends here

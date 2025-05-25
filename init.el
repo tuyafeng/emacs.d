@@ -60,6 +60,7 @@
 (require 'init-yaml)
 (require 'init-elfeed)
 (require 'init-speed-type)
+(require 'init-gpt)
 
 (when (file-exists-p custom-file)
   (load custom-file))

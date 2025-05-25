@@ -11,9 +11,7 @@
   (setq recentf-max-menu-items 30)
   (add-to-list 'recentf-exclude "/Applications/.*")
   (add-to-list 'recentf-exclude
-               (expand-file-name "elpa-.*" user-emacs-directory))
-  (add-to-list 'recentf-exclude
-               (expand-file-name "quelpa-.*" user-emacs-directory)))
+               (expand-file-name "elpa-.*" user-emacs-directory)))
 
 (provide 'init-recentf)
 ;;; init-recentf.el ends here

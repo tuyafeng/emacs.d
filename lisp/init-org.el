@@ -20,7 +20,16 @@
   (setq org-image-actual-width 'nil)
   (setq org-cycle-separator-lines -1)
   (setq org-list-allow-alphabetical t)
-  (setq org-export-with-section-numbers nil))
+  (setq org-export-with-section-numbers nil)
+  :custom-face
+  (org-level-1 ((t (:height 1.15))))
+  (org-level-2 ((t (:height 1.13))))
+  (org-level-3 ((t (:height 1.11))))
+  (org-level-4 ((t (:height 1.09))))
+  (org-level-5 ((t (:height 1.07))))
+  (org-level-6 ((t (:height 1.05))))
+  (org-level-7 ((t (:height 1.03))))
+  (org-level-8 ((t (:height 1.01)))))
 
 (use-package ox-html
   :ensure nil

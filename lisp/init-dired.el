@@ -7,7 +7,7 @@
   :commands (dired)
   :config
   ;; Reference: https://github.com/doomemacs/doomemacs/blob/master/modules/emacs/dired/config.el
-  (let ((args (list "-ahl" "-v" "--group-directories-first")))
+  (let ((args (list "-ahl" "--group-directories-first")))
     (when (eq system-type 'darwin)
       ;; Use GNU ls as `gls' from `coreutils' if available.
       (if-let (gls (executable-find "gls"))
@@ -23,6 +23,7 @@
   (set-face-bold 'dired-directory t)
   (setq delete-by-moving-to-trash t)
   (setq dired-kill-when-opening-new-dired-buffer t)
+  (setq dired-movement-style 'cycle)
 
   ;; Remeber `dired-hide-details-mode`
   (setq my/dired-hide-details-mode-value 1)
@@ -133,26 +134,44 @@
   (with-eval-after-load 'dired
     (define-key dired-mode-map (kbd "SPC") #'my/quicklook-file)))
 
-;; Reference: https://github.com/gmoutso/dotemacs/blob/93649716da46497dd79d07e06a30e694b9207a2b/lisp/variousrc.el
 (defun my/copy-file-to-clipboard (&optional file)
-  "Copy file at point to clipboard."
+  "Copy the file at point to the clipboard.
+If FILE is provided, copy it. Otherwise, use the file at point in `dired-mode` or the current buffer's file."
   (interactive)
   (let ((file (or file (if (derived-mode-p 'dired-mode)
                            (dired-get-file-for-visit)
                          (buffer-file-name)))))
-    (when (and file (file-regular-p file))
+    (if (not (and file (file-regular-p file)))
+        (message "No valid file found.")
       (cond
+       ;; Windows
        ((eq system-type 'windows-nt)
-        (message "Not supported yet."))
+        (if (zerop (call-process-shell-command
+                    (format "powershell -Command \"Set-Clipboard -Path '%s'\""
+                            (replace-regexp-in-string "/" "\\" (expand-file-name file) t t))))
+            (message "Copied %s to clipboard" file)
+          (message "Failed to copy %s to clipboard" file)))
+
+       ;; macOS
        ((eq system-type 'darwin)
-        (do-applescript
-         (format "set the clipboard to POSIX file \"%s\"" (expand-file-name file))))
+        (let ((script (format "set the clipboard to POSIX file \"%s\""
+                              (expand-file-name file))))
+          (do-applescript script)
+          (message "Copied %s to clipboard" file)))
+
+       ;; Linux
        ((eq system-type 'gnu/linux)
-        (call-process-shell-command
-         (format "xclip -selection clipboard -t %s -i %s"
-                 (mailcap-extension-to-mime (file-name-extension file))
-                 file))))
-      (message "Copied %s" file))))
+        (let ((mime-type (mailcap-extension-to-mime (file-name-extension file))))
+          (if (and mime-type
+                   (zerop (call-process-shell-command
+                           (format "xclip -selection clipboard -t %s -i %s"
+                                   mime-type (shell-quote-argument file)))))
+              (message "Copied %s to clipboard" file)
+            (message "Failed to copy %s to clipboard" file))))
+
+       ;; Unsupported system
+       (t
+        (message "Clipboard copy is not supported on this system."))))))
 
 (defun my/reveal-current-file-externally ()
   "Reveal current file in system file manager."

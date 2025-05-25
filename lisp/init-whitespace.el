@@ -19,7 +19,12 @@
   (defun my/whitespace-before-save-hook()
     (when (derived-mode-p 'prog-mode 'markdown-mode 'org-mode)
       (delete-trailing-whitespace)))
-  (add-hook 'before-save-hook #'my/whitespace-before-save-hook))
+  (add-hook 'before-save-hook #'my/whitespace-before-save-hook)
+  :custom-face
+  (whitespace-trailing
+   ((t :background unspecified
+       :underline (:color
+                   ,(face-attribute 'font-lock-comment-face :foreground))))))
 
 (provide 'init-whitespace)
 ;;; init-whitespace.el ends here
