@@ -11,6 +11,9 @@
       (read-only-mode 1)))
   (add-hook 'find-file-hook #'my/mpv-find-file-hook)
   :config
+  ;; Reference: https://www.reddit.com/r/emacs/comments/y6jng9/mpvstart_failed_to_connect_to_mpv/
+  ;; to address Failed to connect to mpv error
+  (setq mpv-start-timeout 5)
   (defun my/mpv-play-music ()
     "Play music with mpv."
     (interactive)

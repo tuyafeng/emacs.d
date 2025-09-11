@@ -235,5 +235,13 @@ point reaches the beginning or end of the buffer, stop there."
   :config
   (setq view-read-only t))
 
+(when (>= emacs-major-version 30)
+  (use-package ultra-scroll
+    :vc (:url "https://github.com/jdtsmith/ultra-scroll")
+    :hook (after-init . ultra-scroll-mode)
+    :init
+    (setq scroll-conservatively 3
+          scroll-margin 0)))
+
 (provide 'init-editor)
 ;;; init-editor.el ends here

@@ -25,6 +25,7 @@
 (require 'init-windows)
 (require 'init-minibuffer)
 (require 'init-mode-line)
+(require 'init-tab-bar)
 
 (require 'init-editor)
 
