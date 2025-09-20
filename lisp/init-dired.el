@@ -42,7 +42,26 @@
     (my/dired-hide-details-mode-hook))
 
   (define-key dired-mode-map (kbd "(")
-              #'my/dired-toggle-dired-hide-details-mode))
+              #'my/dired-toggle-dired-hide-details-mode)
+
+  (defun my/dired-sort-prompt ()
+  "Prompt user to choose Dired sort method."
+  (interactive)
+  (let ((choice (read-char-choice
+                 "Sort by: (s)ize, e(x)tension, (t)ime, (n)ame. S/X/T/N means reversed: "
+                 '(?s ?S ?x ?X ?t ?T ?n ?N))))
+    (pcase choice
+      (?s (dired-sort-other "-alhS"))
+      (?S (dired-sort-other "-alhSr"))
+      (?x (dired-sort-other "-alX --group-directories-first"))
+      (?X (dired-sort-other "-alXr --group-directories-first"))
+      (?t (dired-sort-other "-alht"))
+      (?T (dired-sort-other "-alhtr"))
+      (?n (dired-sort-other "-al"))
+      (?N (dired-sort-other "-alr"))
+      )))
+
+  (define-key dired-mode-map (kbd "s") 'my/dired-sort-prompt))
 
 (use-package dired-x
   :ensure nil
@@ -81,40 +100,11 @@
     (revert-buffer))
   (advice-add 'dired-subtree-toggle :after #'my/dired-subtree-toggle-after-advice))
 
-(use-package fd-dired
-  :defer t)
-
-;; In Emacs 29 the NS port will have a system trash implementation:
-;; https://github.com/emacs-mirror/emacs/commit/796075ef7e1c7a294fe8c3c36c999c10c2f09d38
-(when (and (< emacs-major-version 29) (eq system-type 'darwin))
-  (use-package osx-trash
-    :after dired
-    :config
-    (osx-trash-setup)))
-
 (use-package doc-view
   :ensure nil
   :defer t
   :config
   (setq doc-view-resolution 300))
-
-(use-package dired-sidebar
-  :bind (("C-x C-n" . dired-sidebar-toggle-sidebar))
-  :commands (dired-sidebar-toggle-sidebar)
-  :config
-  (push 'toggle-window-split dired-sidebar-toggle-hidden-commands)
-  (push 'rotate-windows dired-sidebar-toggle-hidden-commands)
-  (setq dired-sidebar-subtree-line-prefix "  ")
-  (setq dired-sidebar-theme 'nerd)
-  (setq dired-sidebar-use-term-integration t)
-  (setq dired-sidebar-width 30)
-  (defun my/dired-sidebar-mode-hook ()
-    ;; Don't wrap lines
-    (visual-line-mode -1)
-    ;; Refresh buffer when visiting local directory.
-    (unless (file-remote-p default-directory)
-      (auto-revert-mode)))
-  (add-hook 'dired-sidebar-mode-hook #'my/dired-sidebar-mode-hook))
 
 (use-package nerd-icons-dired
   :after (dired nerd-icons)

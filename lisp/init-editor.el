@@ -10,6 +10,9 @@
   (setq word-wrap-by-category t
         display-fill-column-indicator-character ?\u254e))
 
+(setq-default cursor-in-non-selected-windows nil)
+(setq-default cursor-type '(bar . 2))
+
 (use-package frame
   :ensure nil
   :config
@@ -23,7 +26,9 @@
 
 (use-package hl-line
   :ensure nil
-  :hook (after-init . global-hl-line-mode))
+  :hook (after-init . global-hl-line-mode)
+  :config
+  (setq hl-line-sticky-flag nil))
 
 (use-package saveplace
   :ensure nil
@@ -142,7 +147,8 @@
 (use-package newcomment
   :ensure nil
   :bind
-  (("s-/" . 'my/comment-or-uncomment))
+  (:map prog-mode-map
+        ("s-/" . my/comment-or-uncomment))
   :config
   (defun my/comment-or-uncomment ()
     (interactive)
@@ -153,8 +159,7 @@
             (looking-at "\\s-*$"))
           (call-interactively 'comment-dwim)
         (comment-or-uncomment-region (line-beginning-position) (line-end-position)))))
-  :custom
-  (comment-auto-fill-only-comments t))
+  (setq comment-auto-fill-only-comments t))
 
 ;; Reference: http://emacsredux.com/blog/2013/05/22/smarter-navigation-to-the-beginning-of-a-line/
 (defun smarter-move-beginning-of-line (arg)
@@ -242,6 +247,28 @@ point reaches the beginning or end of the buffer, stop there."
     :init
     (setq scroll-conservatively 3
           scroll-margin 0)))
+
+(use-package region-occurrences-highlighter
+  :hook ((prog-mode . region-occurrences-highlighter-mode)
+         (org-mode  . region-occurrences-highlighter-mode)
+         (text-mode . region-occurrences-highlighter-mode))
+  :bind (:map region-occurrences-highlighter-nav-mode-map
+              ("M-n" . region-occurrences-highlighter-next)
+              ("M-p" . region-occurrences-highlighter-prev)))
+
+;; Disable pinch gesture
+(global-unset-key (kbd "<pinch>"))
+
+(defun my/shell-command-on-file (command)
+  "Run shell COMMAND with current buffer file name appended.
+If current buffer has no associated file, signal an error."
+  (interactive "sShell command: ")
+  (if-let ((file (buffer-file-name)))
+      (let ((quoted (shell-quote-argument file)))
+        (shell-command (concat command " " quoted)))
+    (error "This buffer is not visiting a file")))
+
+(global-set-key (kbd "C-c !") #'my/shell-command-on-file)
 
 (provide 'init-editor)
 ;;; init-editor.el ends here

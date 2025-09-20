@@ -21,8 +21,6 @@
         bidi-paragraph-direction nil))
 (add-hook 'find-file-hook #'my/find-file-disable-rtl-hook)
 
-(setq-default cursor-in-non-selected-windows nil)
-
 (setq highlight-nonselected-windows nil)
 
 (setq fast-but-imprecise-scrolling t)

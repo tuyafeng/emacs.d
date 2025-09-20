@@ -26,6 +26,7 @@
 (require 'init-minibuffer)
 (require 'init-mode-line)
 (require 'init-tab-bar)
+(require 'init-keyfreq)
 
 (require 'init-editor)
 
@@ -40,6 +41,7 @@
 (require 'init-corfu)
 (unless (eq system-type 'windows-nt)
   (require 'init-vterm))
+(require 'init-treesit)
 (require 'init-eglot)
 (require 'init-git)
 
@@ -47,19 +49,15 @@
 (require 'init-python)
 (require 'init-markdown)
 (require 'init-lisp)
-(require 'init-flutter)
 (require 'init-web)
 (require 'init-csv)
 
 (require 'init-telega)
 (require 'init-pass)
 (require 'init-mpv)
-(require 'init-google-translate)
-(require 'init-yasnippet)
-(require 'init-nov)
+(require 'init-tempel)
 (require 'init-android)
 (require 'init-yaml)
-(require 'init-elfeed)
 (require 'init-speed-type)
 (require 'init-gpt)
 

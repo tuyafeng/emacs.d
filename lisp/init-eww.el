@@ -4,7 +4,7 @@
 
 (use-package eww
   :ensure nil
-  :commands (my/eww-visit-bookmark eww eww-browser-url)
+  :commands (my/eww-visit-bookmark eww)
   :init
   (setq browse-url-browser-function #'eww-browse-url)
   :config
@@ -99,11 +99,6 @@
   (define-key eww-mode-map (kbd "B") #'my/eww-visit-bookmark)
 
   (define-key eww-mode-map (kbd "L") #'eww-list-bookmarks))
-
-(use-package eww-url
-  :commands (eww-url-list-urls)
-  :after eww
-  :load-path "site-lisp/eww-url")
 
 (use-package mb-url
   :config

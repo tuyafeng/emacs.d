@@ -70,24 +70,7 @@
    consult-bookmark consult-recent-file consult-xref
    consult--source-bookmark consult--source-file-register
    consult--source-recent-file consult--source-project-recent-file
-   :preview-key "M-.")
-
-  (defvar eww-source
-    (list :name     "Eww Buffer"
-          :category 'buffer
-          :narrow   ?e
-          :face     'consult-buffer
-          :history  'buffer-name-history
-          :state    #'consult--buffer-state
-          :new
-          (lambda (name)
-              (eww name)
-              (consult--buffer-action (current-buffer)))
-          :items
-          (lambda ()
-            (consult--buffer-query :mode 'eww-mode :as #'consult--buffer-pair))))
-
-  (add-to-list 'consult-buffer-sources 'eww-source 'append))
+   :preview-key "M-."))
 
 (use-package embark-consult
   :after (consult embark))

@@ -7,11 +7,6 @@
   :defer t
   :config
   (setq org-link-descriptive 'nil)
-  (setq org-babel-python-command "python3")
-  (org-babel-do-load-languages
-   'org-babel-load-languages '((python . t)))
-  (org-babel-do-load-languages
-   'org-babel-load-languages '((shell . t)))
   (setq org-display-custom-times t)
   (setq org-time-stamp-custom-formats
         '("<%Y-%m-%d %H:%M>" . "<%Y-%m-%d %H:%M:%S>"))
@@ -21,6 +16,25 @@
   (setq org-cycle-separator-lines -1)
   (setq org-list-allow-alphabetical t)
   (setq org-export-with-section-numbers nil)
+  (setq org-modules nil)
+  (setq org-export-backends '(ascii html))
+
+  ;; Reference: https://emacs-china.org/t/org-babel/18699/10
+  (defun my/org-babel-execute-src-block (&optional _arg info _params)
+    "Lazy-load Org Babel language support before executing a code block."
+    (let* ((lang (nth 0 info))
+           (sym (if (member (downcase lang) '("c" "cpp" "c++")) 'C (intern lang)))
+           (backup-languages org-babel-load-languages))
+      (unless (assoc sym backup-languages)
+        (condition-case err
+            (progn
+              (org-babel-do-load-languages 'org-babel-load-languages (list (cons sym t)))
+              (setq-default org-babel-load-languages (append (list (cons sym t)) backup-languages)))
+          (file-missing
+           (setq-default org-babel-load-languages backup-languages)
+           err)))))
+  (advice-add 'org-babel-execute-src-block :before #'my/org-babel-execute-src-block)
+
   :custom-face
   (org-level-1 ((t (:height 1.15))))
   (org-level-2 ((t (:height 1.13))))
@@ -43,11 +57,15 @@
 <p class=\"date\">Last Updated: %C</p>"))))
 
 (use-package org-download
-  :after org
+  :commands (org-download-clipboard
+             org-download-yank
+             org-download-screenshot
+             org-download-image)
+  :hook (org-mode . my/org-download-org-mode-hook)
   :config
   (setq org-download-heading-lvl nil)
   (setq org-download-image-attr-list
-        '("#+caption: caption"
+        '("#+caption: "
           "#+attr_org: :width 300px"
           "#+attr_html: :width 50% :align center"))
   (defun dummy-org-download-annotate-function (link) "")
@@ -57,8 +75,7 @@
     (when buffer-file-name
       (setq-local org-download-heading-lvl nil)
       (setq-local org-download-image-dir
-                  (concat "./" (file-name-base buffer-file-name) ".assets"))))
-  (add-hook 'org-mode-hook #'my/org-download-org-mode-hook))
+                  (concat "./" (file-name-base buffer-file-name) ".assets")))))
 
 (use-package calendar
   :ensure nil

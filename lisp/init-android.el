@@ -27,5 +27,16 @@
       (local-set-key (kbd "q") 'kill-buffer-and-window)
       (display-buffer buffer))))
 
+(use-package kotlin-ts-mode
+  :mode ("\\.kt\\'" . kotlin-ts-mode))
+
+(use-package java-ts-mode
+  :ensure nil
+  :mode ("\\.java\\'" . java-ts-mode)
+  :config
+  (add-to-list 'major-mode-remap-alist
+               '(java-mode . java-ts-mode)))
+
+
 (provide 'init-android)
 ;;; init-android.el ends here

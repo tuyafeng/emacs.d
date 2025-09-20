@@ -14,8 +14,9 @@
           (border-mode-line-inactive bg-mode-line-inactive)
           ;; Set the mode line with purple style
           (bg-mode-line-active bg-lavender)
-          (fg-mode-line-active fg-main)))
-
+          (fg-mode-line-active fg-main)
+          ;; Dim the background of inactive tabs
+          (bg-tab-other bg-inactive)))
 
   ;; Disable other themes before loading the theme
   (mapc #'disable-theme custom-enabled-themes)

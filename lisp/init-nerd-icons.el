@@ -4,6 +4,7 @@
 
 ;; Don't forget: M-x nerd-icons-install-fonts
 (use-package nerd-icons
+  :if (find-font (font-spec :name "Symbols Nerd Font Mono"))
   :config
   (add-hook 'after-init-hook 'nerd-icons-set-font))
 

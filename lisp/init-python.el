@@ -4,7 +4,10 @@
 
 (use-package python
   :ensure nil
-  :defer t)
+  :mode ("\\.py\\'" . python-ts-mode)
+  :config
+  (add-to-list 'major-mode-remap-alist
+               '(python-mode . python-ts-mode)))
 
 (provide 'init-python)
 ;;; init-python.el ends here
