@@ -84,6 +84,9 @@
 (global-set-key (kbd "s-a") 'mark-whole-buffer)
 (global-set-key (kbd "s-x") 'kill-region)
 (global-set-key (kbd "s-l") 'my/select-current-line)
+(global-set-key (kbd "M-<backspace>") 'my/backward-delete-word)
+(global-set-key (kbd "M-d") 'my/delete-word)
+(global-set-key (kbd "M-@") 'my/mark-word)
 
 (defun my/select-current-line (arg)
   "Select the current line and move the cursor by ARG lines IF
@@ -96,6 +99,52 @@
     (forward-line 0)
     (set-mark-command nil))
   (forward-line arg))
+
+(defun my/backward-delete-word (arg)
+  "Delete region if active, otherwise delete word backward."
+  (interactive "p")
+  (if (use-region-p)
+      (delete-region (region-beginning) (region-end))
+    (let ((end (point)))
+      (cond
+       ((fboundp 'emt-backward-word)
+        (emt-backward-word arg))
+       (t
+        (backward-word arg)))
+      (delete-region (point) end))))
+
+(defun my/delete-word (arg)
+  "Delete region if active, otherwise delete word forward."
+  (interactive "p")
+  (if (use-region-p)
+      (delete-region (region-beginning) (region-end))
+    (let ((start (point)))
+      (cond
+       ((fboundp 'emt-forward-word)
+        (emt-forward-word arg))
+       (t
+        (forward-word arg)))
+      (delete-region start (point)))))
+
+(defun my/mark-word (&optional arg)
+  "Mark the word at point."
+  (interactive "p")
+  (let* ((n (or arg 1))
+         (fw (if (fboundp 'emt-forward-word)
+                 #'emt-forward-word
+               #'forward-word))
+         (bw (if (fboundp 'emt-backward-word)
+                 #'emt-backward-word
+               #'backward-word)))
+    (funcall fw n)
+    (funcall bw n)
+    (set-mark (point))
+    (funcall fw n)))
+
+(with-eval-after-load 'embark
+  (when (featurep 'embark)
+    (keymap-set embark-identifier-map "@" #'my/mark-word)
+    (keymap-set embark-symbol-map "@" #'my/mark-word)))
 
 (use-package undo-fu
   :bind
@@ -251,13 +300,18 @@ point reaches the beginning or end of the buffer, stop there."
 (use-package region-occurrences-highlighter
   :hook ((prog-mode . region-occurrences-highlighter-mode)
          (org-mode  . region-occurrences-highlighter-mode)
-         (text-mode . region-occurrences-highlighter-mode))
+         (text-mode . region-occurrences-highlighter-mode)
+         (fundamental-mode . region-occurrences-highlighter-mode))
   :bind (:map region-occurrences-highlighter-nav-mode-map
               ("M-n" . region-occurrences-highlighter-next)
               ("M-p" . region-occurrences-highlighter-prev)))
 
 ;; Disable pinch gesture
 (global-unset-key (kbd "<pinch>"))
+
+;; Remove unnecessary key bindings
+(global-unset-key (kbd "s-t"))
+(global-unset-key (kbd "s-n"))
 
 (defun my/shell-command-on-file (command)
   "Run shell COMMAND with current buffer file name appended.
@@ -269,6 +323,48 @@ If current buffer has no associated file, signal an error."
     (error "This buffer is not visiting a file")))
 
 (global-set-key (kbd "C-c !") #'my/shell-command-on-file)
+
+(defun my/open-url-at-point-with-external-browser ()
+  "Open URL at point with external browser.
+If in `eww-mode', use `eww-links-at-point'. Otherwise try `org-link-at-point'
+or fallback to `thing-at-point'."
+  (interactive)
+  (let* ((url (cond
+               ;; eww buffer: maybe multiple links
+               ((derived-mode-p 'eww-mode)
+                (let ((links (eww-links-at-point)))
+                  (when links
+                    (if (= (length links) 1)
+                        (car links)
+                      (completing-read "Select URL: " links)))))
+               ;; org link
+               ((derived-mode-p 'org-mode)
+                (org-element-property :raw-link (org-element-context)))
+               ;; generic URL at point
+               (t (thing-at-point 'url t)))))
+    (if url
+        (browse-url-default-browser url)
+      (user-error "No URL found at point"))))
+
+(global-set-key (kbd "C-c C-o") #'my/open-url-at-point-with-external-browser)
+(with-eval-after-load 'org
+  (define-key org-mode-map (kbd "C-c C-o") #'my/open-url-at-point-with-external-browser))
+(with-eval-after-load 'eww
+  (define-key eww-link-keymap (kbd "o") #'my/open-url-at-point-with-external-browser))
+
+(setq ns-pop-up-frames nil)
+
+(defun my/context-at-point ()
+  (or
+   (when (use-region-p)
+     (string-trim
+      (buffer-substring-no-properties
+       (region-beginning) (region-end))))
+   (when (fboundp 'emt--word-at-point)
+     (emt--word-at-point t))
+   (thing-at-point 'symbol t)
+   (thing-at-point 'word t)
+   ""))
 
 (provide 'init-editor)
 ;;; init-editor.el ends here

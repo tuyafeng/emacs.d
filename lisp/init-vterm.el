@@ -8,11 +8,12 @@
   (setq vterm-shell "zsh")
   :bind
   (:map vterm-mode-map
-        ("C-c C-d" . my/vterm-cd-to-visible-dir))
+        ("C-c d v" . my/vterm-cd-to-visible-dir)
+        ("C-c d p" . my/vterm-cd-to-project-root))
   :config
   (setq vterm-always-compile-module t)
   (defun my/vterm-cd-to-visible-dir ()
-    "Send `cd` to vterm, using dired path if buffer is dired-mode, else file's directory."
+    "cd in vterm to directory of a visible non-vterm buffer."
     (interactive)
     (let* ((win (cl-find-if
                  (lambda (w)
@@ -31,11 +32,21 @@
                      ;; fallback
                      (t default-directory))))))
       (if dir
-          (progn
-            (vterm-send-string (concat "cd " (shell-quote-argument
-                                              (expand-file-name dir))))
-            (vterm-send-return))
+          (my/vterm--cd dir)
         (message "No visible buffer with directory found."))))
+  (defun my/vterm-cd-to-project-root ()
+    "cd in vterm to current project root."
+    (interactive)
+    (my/vterm--cd (project-root (project-current t))))
+  (defun my/vterm--cd (dir)
+    "In vterm, send `cd DIR`."
+    (unless (derived-mode-p 'vterm-mode)
+      (user-error "Not in vterm"))
+    (let ((dir (and dir (expand-file-name dir))))
+      (unless dir
+        (user-error "No directory"))
+      (vterm-send-string (format "cd %s" (shell-quote-argument dir)))
+      (vterm-send-return)))
   (defun my/vterm--disable-hl-line ()
     "Disable `global-hl-line-mode' in vterm buffers."
     (setq-local global-hl-line-mode nil))

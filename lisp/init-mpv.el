@@ -15,21 +15,15 @@
   ;; to address Failed to connect to mpv error
   (setq mpv-start-timeout 5)
   (defun my/mpv-play-music ()
-    "Play music with mpv."
-    (interactive)
-    (let* ((is-m3u-file (and (buffer-file-name)
-                             (string= (file-name-extension buffer-file-name) "m3u")))
-           (playlist-file (if is-m3u-file (buffer-file-name)
-                            (expand-file-name "~/Music/Local2/playlist.m3u")))
-           (args (list "--volume=30" "--shuffle" "--no-video"
-                       "--loop-playlist=inf" "--no-resume-playback"
-                       playlist-file)))
-      (when is-m3u-file
-        (add-to-list 'args (format "--playlist-start=%d"
-                                   (- (line-number-at-pos) 1))))
-      (if (file-exists-p playlist-file)
-          (apply 'mpv-start args)
-        (message "%s does not exist" playlist-file))))
+  "Play the current .m3u file with mpv from the current line."
+  (interactive)
+  (if (and buffer-file-name (string= (file-name-extension buffer-file-name) "m3u"))
+      (apply #'mpv-start
+             (list "--volume=30" "--shuffle" "--no-video"
+                   "--loop-playlist=inf" "--no-resume-playback"
+                   (format "--playlist-start=%d" (1- (line-number-at-pos)))
+                   buffer-file-name))
+    (user-error "Not an .m3u playlist buffer")))
   (setq mpv-volume-step 1.1))
 
 (provide 'init-mpv)

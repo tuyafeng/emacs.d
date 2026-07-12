@@ -35,6 +35,11 @@
            err)))))
   (advice-add 'org-babel-execute-src-block :before #'my/org-babel-execute-src-block)
 
+  (defun my/org-align-all-tables ()
+    "Align all tables in the current org buffer."
+    (interactive)
+    (org-table-map-tables 'org-table-align 'quiet))
+
   :custom-face
   (org-level-1 ((t (:height 1.15))))
   (org-level-2 ((t (:height 1.13))))
@@ -87,6 +92,21 @@
 (use-package ox-hugo
   :defer t
   :after ox)
+
+(defun my/paste-markdown-as-org ()
+  "Paste clipboard Markdown content as Org-mode, converted via pandoc."
+  (interactive)
+  (let ((org-output
+         (shell-command-to-string
+          (format "pandoc -f markdown -t org <<'EOF'\n%s\nEOF"
+                  (or (current-kill 0) "")))))
+    (if (string-blank-p org-output)
+        (user-error "Clipboard empty or pandoc conversion failed")
+      (when (use-region-p)
+        (delete-region (region-beginning) (region-end)))
+      (insert org-output))))
+
+(global-set-key (kbd "C-c p o") #'my/paste-markdown-as-org)
 
 (provide 'init-org)
 ;;; init-org.el ends here

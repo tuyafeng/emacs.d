@@ -24,5 +24,11 @@
 (global-set-key (kbd "C-x |") 'split-window-horizontally-instead)
 (global-set-key (kbd "C-x _") 'split-window-vertically-instead)
 
+(use-package winner
+  :hook (after-init . winner-mode)
+  :config
+  (global-set-key (kbd "s-[") 'winner-undo)
+  (global-set-key (kbd "s-]") 'winner-redo))
+
 (provide 'init-windows)
 ;;; init-windows.el ends here

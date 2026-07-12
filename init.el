@@ -26,7 +26,6 @@
 (require 'init-minibuffer)
 (require 'init-mode-line)
 (require 'init-tab-bar)
-(require 'init-keyfreq)
 
 (require 'init-editor)
 
@@ -60,6 +59,7 @@
 (require 'init-yaml)
 (require 'init-speed-type)
 (require 'init-gpt)
+(require 'init-nov)
 
 (when (file-exists-p custom-file)
   (load custom-file))

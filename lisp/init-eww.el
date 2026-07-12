@@ -8,19 +8,8 @@
   :init
   (setq browse-url-browser-function #'eww-browse-url)
   :config
-  (setq shr-max-width 100
-        ;; eww-search-prefix "https://html.duckduckgo.com/html?q="
-        eww-search-prefix "https://www.google.com/search?sca_upv=1&gbv=1&q=")
-
-  (defun my/eww-open-url-at-point-with-external-browser ()
-    "Open the URL at point with an external browser."
-    (interactive)
-    (let ((links (eww-links-at-point)))
-      (when links
-        (let ((url (completing-read "Select URL: " links)))
-          (eww-browse-with-external-browser url)))))
-  (define-key eww-link-keymap (kbd "o")
-              #'my/eww-open-url-at-point-with-external-browser)
+  (setq shr-max-width 100)
+  (setq eww-search-prefix "https://html.duckduckgo.com/html?q=")
 
   ;; Reference: https://emacs.stackexchange.com/a/38639
   (defun my/eww-toggle-images ()
@@ -98,7 +87,72 @@
         (eww url))))
   (define-key eww-mode-map (kbd "B") #'my/eww-visit-bookmark)
 
-  (define-key eww-mode-map (kbd "L") #'eww-list-bookmarks))
+  (define-key eww-mode-map (kbd "L") #'eww-list-bookmarks)
+
+  (defun my/eww--make-button (icon text fn &optional hint)
+    "Return a header-line button.
+ICON is a Nerd Font name string (e.g. \"nf-fa-arrow_left\").
+TEXT is fallback text if `nerd-icons` is unavailable.
+FN is the command to call.
+HINT is optional mouse tooltip."
+    (let ((label (if (featurep 'nerd-icons)
+                     (nerd-icons-faicon icon)
+                   text)))
+      (propertize (concat " " label " ")
+                  'mouse-face 'mode-line-highlight
+                  'face '(:height 0.8)
+                  'help-echo (or hint (symbol-name fn))
+                  'keymap (let ((map (make-sparse-keymap)))
+                            (define-key map [header-line mouse-1] fn)
+                            map))))
+
+  (defun my/eww-set-header-line ()
+    "Set EWW header line with buttons and page info."
+    (setq header-line-format
+          (list
+           (my/eww--make-button "nf-fa-arrow_left"
+                                "Back"
+                                #'eww-back-url
+                                "Go back")
+           (my/eww--make-button "nf-fa-arrow_right"
+                                "Forward"
+                                #'eww-forward-url
+                                "Go forward")
+           (my/eww--make-button "nf-fa-refresh"
+                                "Reload"
+                                #'eww-reload
+                                "Reload page")
+           (my/eww--make-button "nf-fa-share"
+                                "Browser"
+                                #'eww-browse-with-external-browser
+                                "External browser")
+           " "
+           '(:eval
+             (let ((title (or (and (boundp 'eww-data) (plist-get eww-data :title)) "Untitled"))
+                   (url   (or (and (boundp 'eww-data) (plist-get eww-data :url)) "about:blank")))
+               (propertize
+                (if (string-empty-p title) url (format "%s: %s" title url))
+                'face 'header-line))))))
+
+  (add-hook 'eww-after-render-hook #'my/eww-set-header-line)
+
+  (defun my/run-eww-after-render-hook (&rest _)
+    "Run `eww-after-render-hook`."
+    (run-hooks 'eww-after-render-hook))
+
+  ;; Run after render hook after back/forward
+  (advice-add 'eww-back-url :after #'my/run-eww-after-render-hook)
+  (advice-add 'eww-forward-url :after #'my/run-eww-after-render-hook)
+
+  (defun my/eww-save-history-filter (orig-fn &rest args)
+    "Skip saving blank/redirect pages into `eww-history'."
+    (let ((content (string-trim (buffer-string)))
+          (title   (or (plist-get eww-data :title) "")))
+      (unless (or (string-empty-p content)
+                  (string-match-p "\\`Redirecting" title))
+        (apply orig-fn args))))
+
+  (advice-add 'eww-save-history :around #'my/eww-save-history-filter))
 
 (use-package mb-url
   :config

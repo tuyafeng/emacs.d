@@ -21,7 +21,7 @@
 (use-package embark
   :defer 2
   :bind
-  ("C-." . embark-act)
+  ("C-;" . embark-act)
   :config
   (setq embark-prompter 'embark-completing-read-prompter
         prefix-help-command 'embark-prefix-help-command
@@ -68,8 +68,8 @@
    :preview-key '(:debounce 0.4 any))
   (consult-customize
    consult-bookmark consult-recent-file consult-xref
-   consult--source-bookmark consult--source-file-register
-   consult--source-recent-file consult--source-project-recent-file
+   consult-source-bookmark consult-source-file-register
+   consult-source-recent-file consult-source-project-recent-file
    :preview-key "M-."))
 
 (use-package embark-consult

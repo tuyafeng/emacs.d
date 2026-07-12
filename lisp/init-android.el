@@ -12,9 +12,33 @@
          (result (call-process-shell-command command)))
     (if (= 0 result)
         (if (y-or-n-p "Screenshot taken. Copy to clipboard? ")
-            (my/copy-file-to-clipboard path)
+            (my/copy-image-file-to-clipboard path)
           (dired-jump-other-window path))
       (message "Failed to take screenshot(code: %d)." result))))
+
+(defun my/copy-image-file-to-clipboard (file)
+  "Copy image FILE to macOS system clipboard."
+  (interactive "fImage file: ")
+  (let ((file (expand-file-name file)))
+    (if (and (file-exists-p file)
+             (= 0
+                (call-process
+                 "osascript" nil nil nil
+                 "-e"
+                 (format
+                  "set the clipboard to (read (POSIX file \"%s\") as «class PNGf»)"
+                  file))))
+        (message "Copied %s to clipboard" file)
+      (user-error "Failed to copy image file to clipboard: %s" file))))
+
+(defun my/save-clipboard-image-to-file (file)
+  "Save macOS clipboard image to PNG FILE using pngpaste."
+  (interactive "FSave clipboard image to file: ")
+  (let ((file (expand-file-name file)))
+    (make-directory (file-name-directory file) t)
+    (if (= 0 (call-process "pngpaste" nil nil nil file))
+        (message "Saved clipboard image to %s" file)
+      (user-error "Clipboard does not contain an image"))))
 
 (defun my/scrcpy ()
   "Run scrcpy for connected Android device in a dedicated buffer."

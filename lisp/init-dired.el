@@ -93,8 +93,21 @@
 (use-package dired-subtree
   :after dired
   :bind (:map dired-mode-map
-              ("TAB" . dired-subtree-toggle))
+              ("TAB" . my/dired-subtree-toggle))
   :config
+  (defun my/dired-subtree-toggle ()
+    "Toggle dired subtree at point.
+If the directory is empty or contains only dot-files, show a message
+instead of expanding."
+    (interactive)
+    (let ((file (dired-get-file-for-visit)))
+      (cond
+       ((not (file-directory-p file))
+        (user-error "Not a directory"))
+       ((null (directory-files file nil "^[^.]"))
+        (message "No files in %s" (file-name-nondirectory file)))
+       (t
+        (dired-subtree-toggle)))))
   ;; Revert buffer after subtree toggle
   (defun my/dired-subtree-toggle-after-advice()
     (revert-buffer))

@@ -4,6 +4,7 @@
 
 (use-package telega
   :commands (telega)
+  :diminish telega-chat-auto-fill-mode
   :config
   (unless (display-graphic-p) (setq telega-use-images nil))
   (setq telega-server-libs-prefix (expand-file-name "~/.local/tdlib"))
@@ -11,12 +12,12 @@
         (list '(:server "127.0.0.1" :port 1090 :enable t
                         :type (:@type "proxyTypeSocks5"))))
   (setq
-   telega-mode-line-mode 1
+   telega-mode-line-mode t
    telega-avatar-workaround-gaps-for '(return t)
    telega-root-keep-cursor 'track
    telega-root-show-avatars nil
-   telega-translate-to-language-by-default "zh"
-   telega-root-keep-cursor 'track)
+   telega-translate-to-language-by-default "zh")
+  (setq telega-msg-heading-trail t)
   (when (featurep 'nerd-icons)
     ;; Reference: https://emacs-china.org/t/telega/25759
     ;; Reference: https://github.com/LuciusChen/.emacs.d/blob/main/lisp/init-telega.el
