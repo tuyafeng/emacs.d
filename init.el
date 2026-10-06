@@ -41,14 +41,11 @@
 (unless (eq system-type 'windows-nt)
   (require 'init-vterm))
 (require 'init-treesit)
-(require 'init-eglot)
 (require 'init-git)
 
 (require 'init-org)
-(require 'init-python)
 (require 'init-markdown)
 (require 'init-lisp)
-(require 'init-web)
 (require 'init-csv)
 
 (require 'init-telega)
@@ -56,8 +53,6 @@
 (require 'init-mpv)
 (require 'init-tempel)
 (require 'init-android)
-(require 'init-yaml)
-(require 'init-speed-type)
 (require 'init-gpt)
 (require 'init-nov)
 

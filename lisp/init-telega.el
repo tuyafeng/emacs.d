@@ -8,9 +8,10 @@
   :config
   (unless (display-graphic-p) (setq telega-use-images nil))
   (setq telega-server-libs-prefix (expand-file-name "~/.local/tdlib"))
-  (setq telega-proxies
-        (list '(:server "127.0.0.1" :port 1090 :enable t
-                        :type (:@type "proxyTypeSocks5"))))
+  (defun my-telega-add-proxy ()
+    (when my-telega-proxy
+      (telega--addProxy my-telega-proxy 'enable)))
+  (add-hook 'telega-before-auth-hook #'my-telega-add-proxy)
   (setq
    telega-mode-line-mode t
    telega-avatar-workaround-gaps-for '(return t)
@@ -33,6 +34,12 @@
      telega-symbols-emojify (assq-delete-all 'heavy-checkmark telega-symbols-emojify)
      telega-symbol-checkmark (nerd-icons-mdicon "nf-md-check")
      telega-symbol-heavy-checkmark (nerd-icons-mdicon "nf-md-check_all"))))
+
+(use-package telega-bubbles
+  :vc (:url "https://github.com/guidao/telega-bubbles")
+  :after telega
+  :config
+  (telega-bubbles-mode 1))
 
 (provide 'init-telega)
 ;;; init-telega.el ends here

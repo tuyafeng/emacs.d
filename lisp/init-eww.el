@@ -163,19 +163,18 @@ HINT is optional mouse tooltip."
   (with-eval-after-load 'elfeed
     (setq elfeed-curl-extra-arguments mb-url-http-curl-switches))
   (defun my/mb-url-toggle-proxy ()
-    "Toggle whether proxy is enabled."
+    "Toggle proxy."
     (interactive)
-    (let ((proxy "socks5h://127.0.0.1:1090")
-          (switches mb-url-http-curl-default-switches))
-      (unless (and mb-url-http-curl-switches
-                   (member "-x" mb-url-http-curl-switches))
-        (push proxy switches)
-        (push "-x" switches))
-      (setq mb-url-http-curl-switches switches)
+    (if (not (boundp 'my-proxy))
+        (message "my-proxy is not configured")
+      (if (member "-x" mb-url-http-curl-switches)
+          (setq mb-url-http-curl-switches nil)
+        (setq mb-url-http-curl-switches
+              (list "-x" my-proxy)))
       (with-eval-after-load 'elfeed
         (setq elfeed-curl-extra-arguments mb-url-http-curl-switches))
-      (message "Proxy is now %s"
-               (if (member "-x" switches) "enabled" "disabled"))))
+      (message "Proxy %s"
+               (if mb-url-http-curl-switches "enabled" "disabled"))))
   (with-eval-after-load 'eww
     (define-key eww-mode-map "P" 'my/mb-url-toggle-proxy))
   (defun my/mb-url-emacs-startup-hook ()

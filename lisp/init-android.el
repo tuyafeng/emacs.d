@@ -31,11 +31,13 @@
         (message "Copied %s to clipboard" file)
       (user-error "Failed to copy image file to clipboard: %s" file))))
 
-(defun my/save-clipboard-image-to-file (file)
-  "Save macOS clipboard image to PNG FILE using pngpaste."
-  (interactive "FSave clipboard image to file: ")
-  (let ((file (expand-file-name file)))
-    (make-directory (file-name-directory file) t)
+(defun my/save-clipboard-image-to-file (dir)
+  "Save macOS clipboard image to DIR using pngpaste."
+  (interactive "DSave clipboard image to directory: ")
+  (let* ((dir (expand-file-name dir))
+         (filename (format-time-string "clipboard-%Y%m%d-%H%M%S.png"))
+         (file (expand-file-name filename dir)))
+    (make-directory dir t)
     (if (= 0 (call-process "pngpaste" nil nil nil file))
         (message "Saved clipboard image to %s" file)
       (user-error "Clipboard does not contain an image"))))
@@ -50,17 +52,6 @@
         (async-shell-command command buffer))
       (local-set-key (kbd "q") 'kill-buffer-and-window)
       (display-buffer buffer))))
-
-(use-package kotlin-ts-mode
-  :mode ("\\.kt\\'" . kotlin-ts-mode))
-
-(use-package java-ts-mode
-  :ensure nil
-  :mode ("\\.java\\'" . java-ts-mode)
-  :config
-  (add-to-list 'major-mode-remap-alist
-               '(java-mode . java-ts-mode)))
-
 
 (provide 'init-android)
 ;;; init-android.el ends here

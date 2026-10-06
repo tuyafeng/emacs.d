@@ -45,21 +45,22 @@
               #'my/dired-toggle-dired-hide-details-mode)
 
   (defun my/dired-sort-prompt ()
-  "Prompt user to choose Dired sort method."
-  (interactive)
-  (let ((choice (read-char-choice
-                 "Sort by: (s)ize, e(x)tension, (t)ime, (n)ame. S/X/T/N means reversed: "
-                 '(?s ?S ?x ?X ?t ?T ?n ?N))))
-    (pcase choice
-      (?s (dired-sort-other "-alhS"))
-      (?S (dired-sort-other "-alhSr"))
-      (?x (dired-sort-other "-alX --group-directories-first"))
-      (?X (dired-sort-other "-alXr --group-directories-first"))
-      (?t (dired-sort-other "-alht"))
-      (?T (dired-sort-other "-alhtr"))
-      (?n (dired-sort-other "-al"))
-      (?N (dired-sort-other "-alr"))
-      )))
+    "Prompt user to choose Dired sort method."
+    (interactive)
+    (let ((switches
+           (pcase (read-char-choice
+                   "Sort by: (n)ame, (s)ize, (t)ime, e(x)tension. N/S/T/X means reversed: "
+                   '(?s ?S ?x ?X ?t ?T ?n ?N))
+             (?s "-alhS --group-directories-first")
+             (?S "-alhSr --group-directories-first")
+             (?x "-alX --group-directories-first")
+             (?X "-alXr --group-directories-first")
+             (?t "-alht")
+             (?T "-alhtr")
+             (?n "-al --group-directories-first")
+             (?N "-alr --group-directories-first"))))
+      (dired-sort-other switches)
+      (customize-set-variable 'dired-listing-switches switches)))
 
   (define-key dired-mode-map (kbd "s") 'my/dired-sort-prompt))
 

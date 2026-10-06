@@ -20,6 +20,12 @@
   (require 'bind-key)
   (require 'diminish))
 
+(use-package benchmark-init
+  :ensure t
+  :demand t
+  :hook
+  (after-init . benchmark-init/deactivate))
+
 (use-package no-littering
   :config
   (setq auto-save-file-name-transforms

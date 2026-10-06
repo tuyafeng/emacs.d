@@ -36,6 +36,14 @@ Adds a bold underlined index before the tab name."
        (propertize (concat " " (alist-get 'name tab) " ") 'face face))))
   (setq tab-bar-tab-name-format-function #'my--tab-bar-tab-name-format)
 
+  (dolist (key '("<wheel-up>"
+                 "<wheel-down>"
+                 "<wheel-left>"
+                 "<wheel-right>"
+                 "<mouse-4>"
+                 "<mouse-5>"))
+    (define-key tab-bar-map (kbd key) #'ignore))
+
   :custom
   (tab-bar-select-tab-modifiers '(super)))
 
@@ -60,18 +68,6 @@ After closing, show the previous tab if possible, otherwise stay at first tab."
       (unwind-protect
           (mapc #'kill-buffer bufs)
         (tab-bar-close-tab current target))))
-
-  (defvar my/tabspaces-repeat-map
-    (let ((map (make-sparse-keymap)))
-      (dolist (pair '(("n" . tab-new)
-                      ("k" . my/tabspaces-kill-buffers-close-workspace)))
-        (let ((key (car pair))
-              (fn  (cdr pair)))
-          (keymap-global-set (concat "C-c w " key) fn)
-          (define-key map (kbd key) fn)
-          (put fn 'repeat-map 'my/tabspaces-repeat-map)))
-      map)
-    "Tabspaces repeat map for `C-c w ...` commands.")
 
   ;; Filter Buffers for Consult-Buffer
   (with-eval-after-load 'consult

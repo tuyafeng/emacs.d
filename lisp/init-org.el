@@ -5,6 +5,15 @@
 (use-package org
   :ensure nil
   :defer t
+  :custom-face
+  (org-level-1 ((t (:height 1.15))))
+  (org-level-2 ((t (:height 1.13))))
+  (org-level-3 ((t (:height 1.11))))
+  (org-level-4 ((t (:height 1.09))))
+  (org-level-5 ((t (:height 1.07))))
+  (org-level-6 ((t (:height 1.05))))
+  (org-level-7 ((t (:height 1.03))))
+  (org-level-8 ((t (:height 1.01))))
   :config
   (setq org-link-descriptive 'nil)
   (setq org-display-custom-times t)
@@ -40,15 +49,22 @@
     (interactive)
     (org-table-map-tables 'org-table-align 'quiet))
 
-  :custom-face
-  (org-level-1 ((t (:height 1.15))))
-  (org-level-2 ((t (:height 1.13))))
-  (org-level-3 ((t (:height 1.11))))
-  (org-level-4 ((t (:height 1.09))))
-  (org-level-5 ((t (:height 1.07))))
-  (org-level-6 ((t (:height 1.05))))
-  (org-level-7 ((t (:height 1.03))))
-  (org-level-8 ((t (:height 1.01)))))
+  (defun my/org-todo-choice ()
+    "Select an Org TODO state using a single-key minibuffer prompt."
+    (interactive)
+    (let* ((alist (seq-filter
+                   (lambda (x) (characterp (cdr x)))
+                   org-todo-key-alist))
+           (key (read-char-choice
+                 (format "TODO: %s  [SPC] clear: "
+                         (mapconcat
+                          (lambda (x)
+                            (format "[%c] %s" (cdr x) (car x)))
+                          alist "  "))
+                 (cons ?\s (mapcar #'cdr alist)))))
+      (org-todo
+       (or (car (rassoc key alist)) 'none))))
+  (define-key org-mode-map (kbd "C-c C-t") #'my/org-todo-choice))
 
 (use-package ox-html
   :ensure nil

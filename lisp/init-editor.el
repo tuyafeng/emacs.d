@@ -366,5 +366,8 @@ or fallback to `thing-at-point'."
    (thing-at-point 'word t)
    ""))
 
+(put 'upcase-region 'disabled nil)
+(put 'downcase-region 'disabled nil)
+
 (provide 'init-editor)
 ;;; init-editor.el ends here
