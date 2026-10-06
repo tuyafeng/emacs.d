@@ -2,8 +2,6 @@
 ;;; Commentary:
 ;;; Code:
 
-(mapc #'disable-theme custom-enabled-themes)
-
 (use-package modus-themes
   :config
 

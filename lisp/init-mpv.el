@@ -18,11 +18,10 @@
   "Play the current .m3u file with mpv from the current line."
   (interactive)
   (if (and buffer-file-name (string= (file-name-extension buffer-file-name) "m3u"))
-      (apply #'mpv-start
-             (list "--volume=30" "--shuffle" "--no-video"
-                   "--loop-playlist=inf" "--no-resume-playback"
-                   (format "--playlist-start=%d" (1- (line-number-at-pos)))
-                   buffer-file-name))
+      (mpv-start "--volume=30" "--shuffle" "--no-video"
+                 "--loop-playlist=inf" "--no-resume-playback"
+                 (format "--playlist-start=%d" (1- (line-number-at-pos)))
+                 buffer-file-name)
     (user-error "Not an .m3u playlist buffer")))
   (setq mpv-volume-step 1.1))
 

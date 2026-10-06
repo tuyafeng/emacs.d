@@ -16,8 +16,8 @@
     "Toggle whether images are loaded and reload the current page from cache."
     (interactive)
     (setq-local shr-inhibit-images (not shr-inhibit-images))
-    (if (derived-mode-p 'eww-mode)
-        (eww-reload t))
+    (when (derived-mode-p 'eww-mode)
+      (eww-reload t))
     (message "Images are now %s"
              (if shr-inhibit-images "off" "on")))
   (define-key eww-mode-map (kbd "I") #'my/eww-toggle-images)
@@ -27,8 +27,8 @@
     "Toggle whether fonts are loaded and reload the current page from cache."
     (interactive)
     (setq-local shr-use-fonts (not shr-use-fonts))
-    (if (derived-mode-p 'eww-mode)
-        (eww-reload t))
+    (when (derived-mode-p 'eww-mode)
+      (eww-reload t))
     (message "Fonts are now %s"
              (if shr-use-fonts "on" "off")))
   (define-key eww-mode-map (kbd "F") #'my/eww-toggle-fonts)
@@ -45,7 +45,7 @@
 
   (defun my/eww-rename-buffer ()
     (when (eq major-mode 'eww-mode)
-      (when-let ((string (or (plist-get eww-data :title)
+      (when-let* ((string (or (plist-get eww-data :title)
                              (plist-get eww-data :url)))
                  (max-length 58))
         (if (and (> max-length 3) (> (length string) max-length))
@@ -56,7 +56,7 @@
   (defun my/eww-add-bookmark ()
     "Bookmark the current page with the given title."
     (interactive)
-    (when-let ((url (plist-get eww-data :url))
+    (when-let* ((url (plist-get eww-data :url))
                (title (read-string "Set bookmark title: "
                                    (plist-get eww-data :title))))
       (setq title (replace-regexp-in-string "[\n\t\r]" "" title))
@@ -80,11 +80,11 @@
     (interactive)
     (unless eww-bookmarks
       (eww-read-bookmarks))
-    (let ((urls (mapcar (lambda (bookmark)
-                          (plist-get bookmark :url))
-                        eww-bookmarks)))
-      (let ((url (completing-read "Enter URL or keywords: " urls)))
-        (eww url))))
+    (let* ((urls (mapcar (lambda (bookmark)
+                           (plist-get bookmark :url))
+                         eww-bookmarks))
+           (url (completing-read "Enter URL or keywords: " urls)))
+      (eww url)))
   (define-key eww-mode-map (kbd "B") #'my/eww-visit-bookmark)
 
   (define-key eww-mode-map (kbd "L") #'eww-list-bookmarks)

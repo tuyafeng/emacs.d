@@ -8,23 +8,11 @@
       '(("gnu"   . "https://mirrors.tuna.tsinghua.edu.cn/elpa/gnu/")
         ("melpa" . "https://mirrors.tuna.tsinghua.edu.cn/elpa/melpa/")))
 
-(let ((package-selected-packages '(use-package diminish)))
-  (when (cl-find-if-not #'package-installed-p package-selected-packages)
-    (package-refresh-contents)
-    (mapc #'package-install package-selected-packages)))
-
 (eval-when-compile
   (require 'use-package)
   (setq use-package-always-ensure t)
   (setq use-package-compute-statistics 1)
-  (require 'bind-key)
-  (require 'diminish))
-
-(use-package benchmark-init
-  :ensure t
-  :demand t
-  :hook
-  (after-init . benchmark-init/deactivate))
+  (require 'bind-key))
 
 (use-package no-littering
   :config

@@ -4,7 +4,6 @@
 
 (use-package whitespace
   :ensure nil
-  :diminish whitespace-mode
   :hook
   ((prog-mode markdown-mode org-mode) . whitespace-mode)
   :config

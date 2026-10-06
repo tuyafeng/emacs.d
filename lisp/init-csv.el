@@ -9,8 +9,7 @@
     "Toggle csv-align-mode for CSV files."
     (interactive)
     (if (bound-and-true-p csv-align-mode)
-        (progn
-          (csv-align-mode -1))
+        (csv-align-mode -1)
       (csv-align-mode 1)))
   (define-key csv-mode-map (kbd "C-c C-a") #'my/toggle-csv-align-mode))
 

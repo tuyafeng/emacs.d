@@ -4,7 +4,6 @@
 
 (use-package telega
   :commands (telega)
-  :diminish telega-chat-auto-fill-mode
   :config
   (unless (display-graphic-p) (setq telega-use-images nil))
   (setq telega-server-libs-prefix (expand-file-name "~/.local/tdlib"))

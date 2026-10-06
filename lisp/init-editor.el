@@ -36,7 +36,6 @@
 
 (use-package autorevert
   :ensure nil
-  :diminish auto-revert-mode
   :hook (after-init . global-auto-revert-mode)
   :config
   (setq auto-revert-verbose nil
@@ -55,17 +54,12 @@
   (setq version-control t)
   (setq backup-by-copying t)
   (setq delete-old-versions t)
-  (setq make-backup-files nil)
   (setq kept-old-versions 5)
   (setq kept-new-versions 5)
   ;; Turn on auto-save as fallback strategy in case of crashes or lost data
   (setq auto-save-default t)
   (setq auto-save-visited-mode t)
-  (setq auto-save-include-big-deletions t)
-  ;; set file path for backup and auto-saved files
-  ;; (setq backup-directory-alist `((".*" . "~/.emacs.d/auto-save")))
-  ;; (setq auto-save-file-name-transforms `((".*" "~/.emacs.d/auto-save" t)))
-  )
+  (setq auto-save-include-big-deletions t))
 
 (use-package delsel
   :ensure nil
@@ -73,7 +67,6 @@
 
 (use-package simple
   :ensure nil
-  :diminish visual-line-mode
   :bind
   (("C-S-j" . join-line))
   :hook (after-init . global-visual-line-mode))
@@ -95,7 +88,7 @@
     If a region is already selected when calling this command, only move
     the cursor by ARG lines."
   (interactive "p")
-  (when (not (use-region-p))
+  (unless (use-region-p)
     (forward-line 0)
     (set-mark-command nil))
   (forward-line arg))
@@ -106,11 +99,9 @@
   (if (use-region-p)
       (delete-region (region-beginning) (region-end))
     (let ((end (point)))
-      (cond
-       ((fboundp 'emt-backward-word)
-        (emt-backward-word arg))
-       (t
-        (backward-word arg)))
+      (if (fboundp 'emt-backward-word)
+          (emt-backward-word arg)
+        (backward-word arg))
       (delete-region (point) end))))
 
 (defun my/delete-word (arg)
@@ -119,11 +110,9 @@
   (if (use-region-p)
       (delete-region (region-beginning) (region-end))
     (let ((start (point)))
-      (cond
-       ((fboundp 'emt-forward-word)
-        (emt-forward-word arg))
-       (t
-        (forward-word arg)))
+      (if (fboundp 'emt-forward-word)
+          (emt-forward-word arg)
+        (forward-word arg))
       (delete-region start (point)))))
 
 (defun my/mark-word (&optional arg)
@@ -142,9 +131,8 @@
     (funcall fw n)))
 
 (with-eval-after-load 'embark
-  (when (featurep 'embark)
-    (keymap-set embark-identifier-map "@" #'my/mark-word)
-    (keymap-set embark-symbol-map "@" #'my/mark-word)))
+  (keymap-set embark-identifier-map "@" #'my/mark-word)
+  (keymap-set embark-symbol-map "@" #'my/mark-word))
 
 (use-package undo-fu
   :bind
@@ -153,7 +141,6 @@
 
 (use-package hideshow
   :ensure nil
-  :diminish hs-minor-mode
   :bind (:map prog-mode-map
               ("C-{" . hs-toggle-hiding))
   :hook (prog-mode . hs-minor-mode)
@@ -166,13 +153,11 @@
   (setq hs-set-up-overlay 'my/hideshow-folded-overlay))
 
 (use-package so-long
-  :when (>= emacs-major-version 27)
   :ensure nil
   :hook (after-init . global-so-long-mode))
 
 (use-package subword
   :ensure nil
-  :diminish subword-mode
   :hook (after-init . global-subword-mode))
 
 (setq-default indent-tabs-mode nil
@@ -234,12 +219,10 @@ point reaches the beginning or end of the buffer, stop there."
 
 (global-set-key (kbd "C-a") 'smarter-move-beginning-of-line)
 
-(when (and (>= emacs-major-version 30)
-           (eq system-type 'darwin))
+(when (eq system-type 'darwin)
   (use-package emt
     :vc (emt :url "https://github.com/roife/emt"
              :rev "v2.1.0")
-    :diminish emt-mode
     :hook (after-init . emt-mode)
     :config
     (setq emt-lib-path (expand-file-name
@@ -247,7 +230,6 @@ point reaches the beginning or end of the buffer, stop there."
                         package-user-dir))))
 
 (use-package repeat
-  :when (>= emacs-major-version 28)
   :ensure nil
   :hook (after-init . repeat-mode))
 
@@ -289,13 +271,12 @@ point reaches the beginning or end of the buffer, stop there."
   :config
   (setq view-read-only t))
 
-(when (>= emacs-major-version 30)
-  (use-package ultra-scroll
-    :vc (:url "https://github.com/jdtsmith/ultra-scroll")
-    :hook (after-init . ultra-scroll-mode)
-    :init
-    (setq scroll-conservatively 3
-          scroll-margin 0)))
+(use-package ultra-scroll
+  :vc (:url "https://github.com/jdtsmith/ultra-scroll")
+  :hook (after-init . ultra-scroll-mode)
+  :init
+  (setq scroll-conservatively 3
+        scroll-margin 0))
 
 (use-package region-occurrences-highlighter
   :hook ((prog-mode . region-occurrences-highlighter-mode)
@@ -317,7 +298,7 @@ point reaches the beginning or end of the buffer, stop there."
   "Run shell COMMAND with current buffer file name appended.
 If current buffer has no associated file, signal an error."
   (interactive "sShell command: ")
-  (if-let ((file (buffer-file-name)))
+  (if-let* ((file (buffer-file-name)))
       (let ((quoted (shell-quote-argument file)))
         (shell-command (concat command " " quoted)))
     (error "This buffer is not visiting a file")))

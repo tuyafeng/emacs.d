@@ -23,12 +23,12 @@ You can specify a single filename or a list of names."
   (defun project-x-try-local (dir)
     "Determine if DIR is a non-VC project.
 DIR must include a .project file to be considered a project."
-    (if-let ((root (if (listp project-x-local-identifier)
-                       (seq-some (lambda (n)
-                                   (locate-dominating-file dir n))
-                                 project-x-local-identifier)
-                     (locate-dominating-file dir project-x-local-identifier))))
-        (cons 'local root)))
+    (when-let* ((root (if (listp project-x-local-identifier)
+                         (seq-some (lambda (n)
+                                     (locate-dominating-file dir n))
+                                   project-x-local-identifier)
+                       (locate-dominating-file dir project-x-local-identifier))))
+      (cons 'local root)))
   (add-hook 'project-find-functions 'project-x-try-local 90))
 
 (provide 'init-project)

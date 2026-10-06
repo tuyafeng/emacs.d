@@ -2,9 +2,8 @@
 ;;; Commentary:
 ;;; Code:
 
-(let ((minver "26.1"))
-  (when (version< emacs-version minver)
-    (error "Emacs v%s or higher is required" minver)))
+(when (< emacs-major-version 31)
+  (error "Emacs 31 or higher is required"))
 
 (add-hook 'emacs-startup-hook
           (lambda ()
@@ -45,7 +44,6 @@
 
 (require 'init-org)
 (require 'init-markdown)
-(require 'init-lisp)
 (require 'init-csv)
 
 (require 'init-telega)
@@ -55,6 +53,8 @@
 (require 'init-android)
 (require 'init-gpt)
 (require 'init-nov)
+(when (eq system-type 'darwin)
+  (require 'init-caffeinate))
 
 (when (file-exists-p custom-file)
   (load custom-file))

@@ -4,7 +4,6 @@
 
 (line-number-mode t)
 (column-number-mode t)
-(column-number-mode t)
 (size-indication-mode t)
 (setq-default mode-line-format
               '("%e"
@@ -21,11 +20,18 @@
                 "  "
                 mode-line-modes
                 mode-line-misc-info
-                (vc-mode vc-mode)
+                (:eval (if (featurep 'nerd-icons)
+                           (when vc-mode
+                             (concat
+                              (nerd-icons-faicon "nf-fa-code_fork")
+                              " "
+                              (string-remove-prefix " Git:" vc-mode)))
+                         vc-mode))
                 "  %I %p %l:%c"
                 (:eval (if (and (region-active-p) (/= (region-beginning) (region-end)))
                            (format " %dC" (- (region-end) (region-beginning)))))
                 mode-line-end-spaces))
+(setq mode-line-collapse-minor-modes t)
 
 (use-package keycast
   :hook (after-init . keycast-mode-line-mode)

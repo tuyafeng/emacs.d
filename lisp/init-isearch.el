@@ -5,11 +5,6 @@
 (use-package isearch
   :ensure nil
   :defer t
-  :init
-  ;; `:diminish' doesn't work for isearch, because it uses eval-after-load on
-  ;; the feature name, but isearch.el does not provide any feature.  For the
-  ;; same reason we have to use `:init', but isearch is always loaded anyways.
-  (diminish 'isearch-mode)
   :config
   (setq isearch-allow-scroll t)
   :bind (:map isearch-mode-map

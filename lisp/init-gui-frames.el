@@ -16,11 +16,10 @@
           (setq face-font-rescale-alist `((,cn-font-name . ,ratio))))
       (message "One or both fonts do not exist: %s, %s" font-name cn-font-name))))
 
-(if (eq system-type 'darwin)
-    (set-font-if-available "IBM Plex Mono" "LXGW WenKai" 16 1.1)
-  (set-font-if-available "IBM Plex Mono" "LXGW WenKai" 18 1.1))
+(set-font-if-available "IBM Plex Mono" "LXGW WenKai"
+                       (if (eq system-type 'darwin) 16 18) 1.1)
 
-(setq-default line-spacing 0.3)
+(setq-default line-spacing '(3 . 3))
 
 (setq use-file-dialog nil)
 (setq use-dialog-box nil)

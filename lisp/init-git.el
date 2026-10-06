@@ -8,7 +8,7 @@
   (defun my/magit-add-all-and-commit ()
     "Stage all changes and open the Magit commit buffer."
     (interactive)
-    (if-let ((default-directory (magit-toplevel)))
+    (if-let* ((default-directory (magit-toplevel)))
         (progn
           (magit-call-git "add" "-A")
           (if (magit-anything-staged-p)

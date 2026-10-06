@@ -5,7 +5,7 @@
 (use-package treesit
   :ensure nil
   :config
-  (setopt treesit-enabled-modes t)
+  (setq treesit-enabled-modes t)
   (setq js-indent-level 2)
   (setq css-indent-offset 2))
 

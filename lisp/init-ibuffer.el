@@ -5,8 +5,7 @@
 (use-package ibuffer
   :ensure nil
   :bind
-  ("C-x C-b" . 'ibuffer)
-  :commands (ibuffer)
+  ("C-x C-b" . ibuffer)
   :config
   (setq ibuffer-use-other-window t))
 

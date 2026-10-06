@@ -10,7 +10,7 @@
   (let ((args (list "-ahl" "--group-directories-first")))
     (when (eq system-type 'darwin)
       ;; Use GNU ls as `gls' from `coreutils' if available.
-      (if-let (gls (executable-find "gls"))
+      (if-let* ((gls (executable-find "gls")))
           (setq insert-directory-program gls)
         ;; BSD ls doesn't support -v or --group-directories-first
         (setq args (list (car args))
@@ -62,7 +62,22 @@
       (dired-sort-other switches)
       (customize-set-variable 'dired-listing-switches switches)))
 
-  (define-key dired-mode-map (kbd "s") 'my/dired-sort-prompt))
+  (define-key dired-mode-map (kbd "s") 'my/dired-sort-prompt)
+
+  (defun my/dired-switches-in-mode-line (switches)
+    (let ((short-switches (car (split-string switches))))
+      (cond
+       ((string-search "S" short-switches) "by size")
+       ((string-search "t" short-switches) "by time")
+       ((string-search "X" short-switches) "by ext")
+       (t ""))))
+
+  (setq dired-switches-in-mode-line #'my/dired-switches-in-mode-line)
+
+  (defun my/dired-trim-mode-name (&rest _)
+    (setq mode-name (string-trim-right mode-name)))
+  (advice-add #'dired-sort-set-mode-line
+              :after #'my/dired-trim-mode-name))
 
 (use-package dired-x
   :ensure nil
@@ -73,13 +88,10 @@
   :config
   (setq dired-omit-files "^\\\..*")
   (setq dired-omit-verbose nil)
-  (defun my/dired-omit-startup-after-advice()
-    (diminish 'dired-omit-mode ""))
-  (advice-add 'dired-omit-startup :after 'my/dired-omit-startup-after-advice)
   (setq dired-clean-confirm-killing-deleted-buffers nil)
-  (when-let (cmd (cond ((eq system-type 'darwin) "open")
-                       ((eq system-type 'gnu/linux) "xdg-open")
-                       ((eq system-type 'windows-nt) "start")))
+  (when-let* ((cmd (cond ((eq system-type 'darwin) "open")
+                        ((eq system-type 'gnu/linux) "xdg-open")
+                        ((eq system-type 'windows-nt) "start"))))
     (setq dired-guess-shell-alist-user
           `(("\\.\\(?:docx\\|pdf\\|djvu\\|eps\\)\\'" ,cmd)
             ("\\.\\(?:jpe?g\\|png\\|gif\\|xpm\\)\\'" ,cmd)
@@ -122,8 +134,7 @@ instead of expanding."
 
 (use-package nerd-icons-dired
   :after (dired nerd-icons)
-  :hook (dired-mode . nerd-icons-dired-mode)
-  :diminish nerd-icons-dired-mode)
+  :hook (dired-mode . nerd-icons-dired-mode))
 
 ;; Use space to quicklook file on macOS
 (when (eq system-type 'darwin)
@@ -180,7 +191,7 @@ If FILE is provided, copy it. Otherwise, use the file at point in `dired-mode` o
 (defun my/reveal-current-file-externally ()
   "Reveal current file in system file manager."
   (interactive)
-  (when-let ((file (if (derived-mode-p 'dired-mode)
+  (when-let* ((file (if (derived-mode-p 'dired-mode)
                        (or (dired-get-filename nil 'noerror)
                            (dired-current-directory))
                      (buffer-file-name))))

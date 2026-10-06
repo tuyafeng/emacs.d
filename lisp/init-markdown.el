@@ -5,6 +5,8 @@
 (use-package markdown-ts-mode
   :ensure nil
   :mode ("\\.md\\'" . markdown-ts-mode)
+  :bind (:map markdown-ts-mode-map
+              ("C-c v" . my/markdown-preview-eww))
   :config
   (defun my/markdown-preview-eww ()
     "Preview current Markdown buffer in EWW using Pandoc."
