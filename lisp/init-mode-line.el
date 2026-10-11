@@ -20,13 +20,19 @@
                 "  "
                 mode-line-modes
                 mode-line-misc-info
-                (:eval (if (featurep 'nerd-icons)
-                           (when vc-mode
-                             (concat
-                              (nerd-icons-faicon "nf-fa-code_fork")
-                              " "
-                              (string-remove-prefix " Git:" vc-mode)))
-                         vc-mode))
+                (:eval
+                 (if (featurep 'nerd-icons)
+                     (when vc-mode
+                       (let ((modified (eq (aref vc-mode 4) ?:))
+                             ;; Drop the " Git:" / " Git-" prefix
+                             (branch (substring vc-mode 5)))
+                         (concat
+                          (nerd-icons-faicon "nf-fa-code_fork")
+                          " "
+                          (when modified "•")
+                          branch
+                          )))
+                   vc-mode))
                 "  %I %p %l:%c"
                 (:eval (if (and (region-active-p) (/= (region-beginning) (region-end)))
                            (format " %dC" (- (region-end) (region-beginning)))))

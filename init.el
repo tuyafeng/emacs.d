@@ -54,7 +54,9 @@
 (require 'init-gpt)
 (require 'init-nov)
 (when (eq system-type 'darwin)
-  (require 'init-caffeinate))
+  (require 'init-caffeinate)
+  (require 'init-launcher)
+  (require 'init-server))
 
 (when (file-exists-p custom-file)
   (load custom-file))

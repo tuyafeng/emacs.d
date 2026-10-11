@@ -17,7 +17,7 @@
       (message "One or both fonts do not exist: %s, %s" font-name cn-font-name))))
 
 (set-font-if-available "IBM Plex Mono" "LXGW WenKai"
-                       (if (eq system-type 'darwin) 16 18) 1.1)
+                       (if (eq system-type 'darwin) 15 18) 1.1)
 
 (setq-default line-spacing '(3 . 3))
 

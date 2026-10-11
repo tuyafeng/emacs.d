@@ -134,7 +134,16 @@ instead of expanding."
 
 (use-package nerd-icons-dired
   :after (dired nerd-icons)
-  :hook (dired-mode . nerd-icons-dired-mode))
+  :hook (dired-mode . nerd-icons-dired-mode)
+  :config
+  (defun my/wdired-disable-icons ()
+    (nerd-icons-dired-mode -1))
+  (defun my/wdired-enable-icons ()
+    (nerd-icons-dired-mode +1))
+  (advice-add #'wdired-change-to-wdired-mode
+              :before #'my/wdired-disable-icons)
+  (advice-add #'wdired-change-to-dired-mode
+              :after #'my/wdired-enable-icons))
 
 ;; Use space to quicklook file on macOS
 (when (eq system-type 'darwin)

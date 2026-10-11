@@ -43,5 +43,7 @@
                "running"
              "stopped")))
 
+(add-hook 'kill-emacs-hook #'my/caffeinate-stop)
+
 (provide 'init-caffeinate)
 ;;; init-caffeinate.el ends here

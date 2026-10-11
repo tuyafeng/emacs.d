@@ -5,8 +5,6 @@
 (use-package eww
   :ensure nil
   :commands (my/eww-visit-bookmark eww)
-  :init
-  (setq browse-url-browser-function #'eww-browse-url)
   :config
   (setq shr-max-width 100)
   (setq eww-search-prefix "https://html.duckduckgo.com/html?q=")

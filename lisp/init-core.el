@@ -60,6 +60,7 @@
 (setq use-short-answers t)
 
 (global-set-key (kbd "<escape>") 'keyboard-quit)
+(define-key minibuffer-local-map (kbd "<escape>") #'abort-recursive-edit)
 
 ;; Load PATH from ~/.path, get your path by executing:
 ;; $ echo $PATH > ~/.path

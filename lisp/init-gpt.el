@@ -192,17 +192,17 @@ Use the following guidelines:
       "':(exclude)composer.lock'"))))
 
 (defun my/git-commit-template ()
-  "Return existing commit template/message text from current buffer.
-
-Git comment lines are excluded."
-  (save-excursion
-    (goto-char (point-min))
-    (let ((end (or (save-excursion
-                     (when (re-search-forward "^#" nil t)
-                       (line-beginning-position)))
-                   (point-max))))
-      (string-trim
-       (buffer-substring-no-properties (point-min) end)))))
+  "Return the commit template for the current Git repository."
+  (let* ((default-directory (my/git-root))
+         (file (with-temp-buffer
+                 (when (zerop (process-file
+                               "git" nil t nil
+                               "config" "--path" "--get" "commit.template"))
+                   (string-trim (buffer-string))))))
+    (when (and file (file-readable-p file))
+      (with-temp-buffer
+        (insert-file-contents file)
+        (string-trim (buffer-string))))))
 
 (defun my/gptel-commit-message-callback (buffer response info)
   "Insert generated commit message into BUFFER."

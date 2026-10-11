@@ -46,12 +46,52 @@
   "Run scrcpy for connected Android device in a dedicated buffer."
   (interactive)
   (let ((buffer (get-buffer-create "*scrcpy*"))
-        (command "scrcpy --keyboard=aoa --always-on-top --window-width 340 --shortcut-mod=rctrl+rsuper"))
+        (command "scrcpy --keyboard=uhid  --always-on-top  --window-width 300 --shortcut-mod=lctrl"))
     (with-current-buffer buffer
       (unless (get-buffer-process buffer)
         (async-shell-command command buffer))
       (local-set-key (kbd "q") 'kill-buffer-and-window)
       (display-buffer buffer))))
+
+(defun my/scrcpy-record-stop ()
+  "Stop recording the Android screen with scrcpy."
+  (interactive)
+  (when-let* ((proc (get-buffer-process "*scrcpy-record*")))
+    (set-process-sentinel
+     proc
+     (lambda (p _)
+       (when (memq (process-status p) '(exit signal))
+         (let ((file (process-get p 'record-file))
+               (buffer (process-buffer p)))
+           (when (buffer-live-p buffer)
+             (quit-windows-on buffer)
+             (kill-buffer buffer))
+           (message "%s: %s"
+                    (if (and file (file-exists-p file))
+                        "Recording saved"
+                      "Recording failed")
+                    file)
+           ))))
+    (interrupt-process proc)))
+
+(defun my/scrcpy-record-start ()
+  "Start recording the Android screen with scrcpy."
+  (interactive)
+  (let* ((buffer (get-buffer-create "*scrcpy-record*"))
+         (file (expand-file-name
+                (format-time-string "screenrecord-%Y%m%d-%H%M%S.mp4")
+                "~/Downloads/")))
+    (unless (get-buffer-process buffer)
+      (async-shell-command
+       (format "exec scrcpy --no-playback --no-audio --record=%s"
+               (shell-quote-argument file))
+       buffer)
+      (process-put (get-buffer-process buffer) 'record-file file)
+      (with-current-buffer buffer
+        (use-local-map (copy-keymap (current-local-map)))
+        (dolist (key '("q" "C-g" "<escape>"))
+          (keymap-local-set key #'my/scrcpy-record-stop))))
+    (pop-to-buffer buffer)))
 
 (provide 'init-android)
 ;;; init-android.el ends here
