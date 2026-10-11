@@ -3,7 +3,6 @@
 ;;; Code:
 
 (use-package launcher
-  :defer t
   :vc (:url "https://github.com/xiaoxinghu/launcher.el")
   :bind ("C-c l" . launcher)
   :config
@@ -24,24 +23,33 @@
     (advice-add #'launcher--collect-paths
                 :filter-return #'my/launcher-collect-apps))
 
-  (setq launcher-app-directories
-        '("/Applications"
-          "/System/Applications"
-          "/System/Library/CoreServices"
-          "~/Applications"))
-
   (setq launcher-bangs
         '(("g" "Google" "https://www.google.com.hk/search?newwindow=1&q=%s")
           ("bd" "Baidu" "https://www.baidu.com/s?ie=UTF-8&wd=%s")
           ("ddg" "DuckDuckGo" "https://duckduckgo.com/?ia=web&q=%s")
-          ("bl" "Baidu" "https://search.bilibili.com/all?keyword=%s")
+          ("bl" "Bilibili" "https://search.bilibili.com/all?keyword=%s")
           ("yt" "YouTube" "https://www.youtube.com/results?search_query=%s")
           ("gh" "GitHub" "https://github.com/search?type=repositories&s=stars&o=desc&q=%s")
           ("ec" "Emacs China" "https://www.google.com.hk/search?newwindow=1&q=%s+site:emacs-china.org")
           ("vx" "V2EX" "https://www.google.com.hk/search?newwindow=1&q=%s+site:v2ex.com")))
 
   (setq launcher-fallback-search-url "https://www.google.com.hk/search?newwindow=1&q=%s")
-  (setq browse-url-browser-function #'browse-url-default-browser))
+  (setq browse-url-browser-function #'browse-url-default-browser)
+
+  (defun my/launcher-align (items)
+    "Align Launcher annotations at column 24."
+    (mapcar (lambda (item)
+              (when-let* ((ann (nth 2 item))
+                          ((not (string-empty-p ann))))
+                (setf (nth 2 item)
+                      (concat
+                       (propertize " " 'display
+                                   '(space :align-to 24))
+                       (propertize (string-trim-left ann)
+                                   'face 'marginalia-documentation))))
+              item)
+            items))
+  (advice-add #'launcher--affixation :filter-return #'my/launcher-align))
 
 (defun my/calc-live ()
   "Calculate with live completion and copy the result."
@@ -64,67 +72,50 @@
 
 (global-set-key (kbd "C-c c") #'my/calc-live)
 
-;; My system launcher popup frame
-
-(defvar my/launcher-next-command nil
-  "Command to run after Launcher closes.")
-
-(defun my/launcher-setup ()
-  "Configure Launcher minibuffer shortcuts."
-  (dolist (binding '(("C-x d" . dired)
-                     ("C-x C-f" . find-file)
-                     ("C-x b" . consult-buffer)
-                     ("C-c c" . my/calc-live)
-                     ("M-x" . execute-extended-command)
-                     ("<escape>" . nil)))
-    (let ((command (cdr binding)))
-      (keymap-local-set
-       (car binding)
-       (lambda ()
-         (interactive)
-         (setq my/launcher-next-command command)
-         (abort-recursive-edit))))))
-
-(defun my/launcher-popup ()
-  "Open Launcher in a temporary minibuffer frame."
+(defun my/launcher ()
+  "Open launcher."
   (interactive)
-  (let* ((original (selected-frame))
-         (frame (make-frame
-                 '((name . "Launcher")
-                   (width . 72)
-                   (height . 10)
-                   (minibuffer . only)
-                   (undecorated . t)
-                   (internal-border-width . 12)
-                   (menu-bar-lines . 0)
-                   (tool-bar-lines . 0)
-                   (tab-bar-lines . 0)
-                   (vertical-scroll-bars . nil)
-                   (left-fringe . 0)
-                   (right-fringe . 0)
-                   (cursor-type . bar)))))
-    (select-frame-set-input-focus frame)
-    (run-at-time 0.05 nil #'my/launcher-popup-run frame original)))
+  (condition-case nil
+      (if-let* ((win (active-minibuffer-window)))
+          (select-frame-set-input-focus (window-frame win))
+        (select-frame-set-input-focus (selected-frame))
+        (call-interactively #'launcher))
+    (quit nil)))
 
-(defun my/launcher-popup-run (frame original)
-  "Run Launcher in FRAME, then execute commands in ORIGINAL."
-  (when (frame-live-p frame)
-    (let (my/launcher-next-command)
-      (unwind-protect
-          (condition-case nil
-              (with-selected-frame frame
-                (select-frame-set-input-focus frame)
-                (let ((default-minibuffer-frame frame))
-                  (minibuffer-with-setup-hook #'my/launcher-setup
-                    (call-interactively #'launcher))))
-            (quit nil))
-        (when (frame-live-p frame)
-          (delete-frame frame)))
-      (when (and my/launcher-next-command
-                 (frame-live-p original))
-        (select-frame-set-input-focus original)
-        (with-selected-frame original
-          (call-interactively my/launcher-next-command))))))
+(defun my/empty-trash ()
+  "Empty the macOS Trash."
+  (interactive)
+  (when (yes-or-no-p "Empty Trash permanently? ")
+    (start-process
+     "empty-trash" nil
+     "osascript" "-e"
+     "tell application \"Finder\" to empty the trash")))
+
+(defun my/eject-volume ()
+  "Select and eject a mounted volume."
+  (interactive)
+  (let* ((volumes (seq-filter
+                   (lambda (path)
+                     (and (file-directory-p path)
+                          (not (file-symlink-p path))))
+                   (directory-files "/Volumes" t directory-files-no-dot-files-regexp)))
+         (volume (if volumes
+                     (completing-read "Eject volume: " volumes nil t)
+                   (user-error "No mounted volumes found")))
+         (script (format
+                  "tell application \"Finder\" to eject POSIX file %s as alias"
+                  (prin1-to-string volume))))
+    (let ((buffer (get-buffer-create "*eject-volume*")))
+      (with-current-buffer buffer
+        (erase-buffer))
+      (set-process-sentinel
+       (start-process "eject-volume" buffer "osascript" "-e" script)
+       (lambda (proc _event)
+         (when (memq (process-status proc) '(exit signal))
+           (if (and (eq (process-status proc) 'exit)
+                    (zerop (process-exit-status proc)))
+               (message "Volume ejected")
+             (display-buffer (process-buffer proc)))))))))
 
 (provide 'init-launcher)
 ;;; init-launcher.el ends here

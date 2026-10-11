@@ -75,5 +75,21 @@
 (use-package embark-consult
   :after (consult embark))
 
+(defun my/minibuffer-switch-setup ()
+  "Allow switching commands from any minibuffer."
+  (dolist (binding '(("M-x" . execute-extended-command)
+                     ("C-x d" . dired)
+                     ("C-x C-f" . find-file)
+                     ("C-x b" . consult-buffer)))
+    (let ((command (cdr binding)))
+      (keymap-local-set
+       (car binding)
+       (lambda ()
+         (interactive)
+         (run-at-time 0 nil #'call-interactively command)
+         (abort-recursive-edit))))))
+
+(add-hook 'minibuffer-setup-hook #'my/minibuffer-switch-setup)
+
 (provide 'init-minibuffer)
 ;;; init-minibuffer.el ends here
