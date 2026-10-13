@@ -27,11 +27,6 @@
                (format "--playlist-start=%d" (1- (line-number-at-pos)))
                buffer-file-name))
 
-  (defcustom my/mpv-music-playlist ""
-    "Path to the music playlist."
-    :type 'file
-    :group 'multimedia)
-
   (defun my/mpv-play-music ()
     "Select and play music from the M3U playlist."
     (interactive)
@@ -47,6 +42,48 @@
                      (format "--playlist-start=%d"
                              (seq-position songs song #'equal))
                      (expand-file-name my/mpv-music-playlist)))))))
+
+(defcustom my/mpv-music-playlist ""
+  "Path to the music playlist."
+  :type 'file
+  :group 'multimedia)
+
+(with-eval-after-load 'launcher
+  (defun my/music-candidates ()
+    "Read songs from `my/mpv-music-playlist'."
+    (let ((playlist (expand-file-name my/mpv-music-playlist)))
+      (unless (equal (file-name-extension playlist) "m3u")
+        (user-error "Invalid M3U playlist: %s" playlist))
+      (with-temp-buffer
+        (insert-file-contents playlist)
+        (let ((songs
+               (seq-remove
+                (lambda (line) (string-prefix-p "#" line))
+                (split-string (buffer-string) "[\r\n]+" t))))
+          (cl-loop for song in songs
+                   for index from 0
+                   collect
+                   (list :id index
+                         :title (file-name-nondirectory song)
+                         :data (list :playlist playlist :index index)))))))
+
+  (defun my/play-song (candidate)
+    "Play the song selected in Launcher."
+    (require 'mpv)
+    (let ((data (plist-get candidate :data)))
+      (mpv-start "--volume=30" "--shuffle" "--no-video"
+                 "--loop-playlist=inf" "--no-resume-playback"
+                 (format "--playlist-start=%d"
+                         (plist-get data :index))
+                 (plist-get data :playlist)))
+    nil)
+
+  (add-to-list 'launcher-tools
+               `("play" :name "Play music"
+                 :icon ,(when (require 'nerd-icons nil t)
+                          (nerd-icons-faicon "nf-fa-music"))
+                 :candidates my/music-candidates
+                 :submit my/play-song)))
 
 (provide 'init-mpv)
 ;;; init-mpv.el ends here

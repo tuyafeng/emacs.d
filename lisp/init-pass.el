@@ -41,5 +41,25 @@ The default LENGTH is 16."
     (message "Generated password: %s (Copied to clipboard)" password)
     password))
 
+(with-eval-after-load 'launcher
+  (defun my/pass-candidates ()
+    (require 'password-store)
+    (mapcar (lambda (entry)
+              (list :id entry :title entry :data entry))
+            (password-store-list)))
+
+  (defun my/pass-copy (candidate)
+    (require 'password-store)
+    (password-store-copy (plist-get candidate :data))
+    (message "Password copied.")
+    nil)
+
+  (add-to-list 'launcher-tools
+               `("pass" :name "Pass"
+                        :icon ,(when (featurep 'nerd-icons)
+                                 (nerd-icons-faicon "nf-fa-key"))
+                        :candidates my/pass-candidates
+                        :submit my/pass-copy)))
+
 (provide 'init-pass)
 ;;; init-pass.el ends here

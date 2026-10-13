@@ -57,6 +57,7 @@
   (require 'init-caffeinate)
   (require 'init-launcher)
   (require 'init-server))
+(require 'init-pinyin)
 
 (when (file-exists-p custom-file)
   (load custom-file))

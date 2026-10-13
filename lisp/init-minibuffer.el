@@ -80,7 +80,8 @@
   (dolist (binding '(("M-x" . execute-extended-command)
                      ("C-x d" . dired)
                      ("C-x C-f" . find-file)
-                     ("C-x b" . consult-buffer)))
+                     ("C-x b" . consult-buffer)
+                     ("C-c l" . launcher)))
     (let ((command (cdr binding)))
       (keymap-local-set
        (car binding)
