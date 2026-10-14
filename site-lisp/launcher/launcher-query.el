@@ -10,6 +10,9 @@
 (require 'seq)
 
 (defvar launcher-fallback-search-url)
+(declare-function calc-eval "calc" (str &optional separator &rest args))
+(defvar calc-eval-error)
+(defvar calc-multiplication-has-precedence)
 (declare-function launcher--launch "launcher" (app-path))
 (declare-function launcher--callable-p "launcher" (value))
 (declare-function launcher--route "launcher" (input tools))
@@ -29,7 +32,7 @@
 (cl-defstruct (launcher--query-session (:constructor launcher--query-session-create))
   tools styles overrides defaults buffer input (version 0)
   slots static-cache timers errors pending results candidates closed answer
-  status-overlay selection route)
+  status-overlay selection route (annotation-column 0) annotation-metrics)
 
 (defvar-local launcher--query-session nil "This minibuffer's launcher query session.")
 (defvar launcher-selection-history nil
@@ -119,74 +122,35 @@ Keep source order and all candidates sharing a matching title."
           (puthash index (format "%s (candidates): %s" (launcher--tool-name tool) failure)
                    (launcher--query-session-errors session)))))))
 
-(defun launcher--arithmetic (text)
-  "Parse and calculate TEXT using only decimal numbers and + - * / ().
-Return nil for incomplete or invalid syntax; signal an error for division
-by zero.  No Lisp forms, variables, function calls or evaluation are used."
-  (let ((pos 0) (len (length text)) division-by-zero)
-    (cl-labels
-        ((space () (while (and (< pos len) (memq (aref text pos) '(?\s ?\t ?\n)))
-                     (cl-incf pos)))
-         (peek () (space) (and (< pos len) (aref text pos)))
-         (factor ()
-           (pcase (peek)
-             ((or ?+ ?-) (let ((negative (= (aref text pos) ?-)))
-                           (cl-incf pos)
-                           (* (if negative -1 1) (factor))))
-             (?\( (cl-incf pos)
-                  (let ((value (sum)))
-                    (unless (eq (peek) ?\)) (throw 'invalid nil))
-                    (cl-incf pos) value))
-             (_ (space)
-                (unless (and (string-match "\\(?:[0-9]+\\(?:\\.[0-9]*\\)?\\|\\.[0-9]+\\)" text pos)
-                             (= (match-beginning 0) pos))
-                  (throw 'invalid nil))
-                (let ((number (match-string 0 text)))
-                  (setq pos (match-end 0)) (string-to-number number)))))
-         (product ()
-           (let ((value (factor)))
-             (while (memq (peek) '(?* ?/))
-               (let ((op (aref text pos)))
-                 (cl-incf pos)
-                 (let ((right (factor)))
-                   (setq value (cond ((= op ?*) (* value right))
-                                     ((zerop right) (setq division-by-zero t) 0)
-                                     (t (/ (float value) right)))))))
-             value))
-         (sum ()
-           (let ((value (product)))
-             (while (memq (peek) '(?+ ?-))
-               (let ((op (aref text pos)))
-                 (cl-incf pos)
-                 (let ((right (product)))
-                   (setq value (if (= op ?+) (+ value right) (- value right))))))
-             value)))
-      (catch 'invalid
-        (let ((value (sum)))
-          (space)
-          (when (= pos len)
-            (when division-by-zero (error "Division by zero"))
-            value))))))
-
 (defun launcher--calculator-query (input)
-  "Return a calculation candidate, including INVALID for unfinished INPUT.
-Invalid candidates retain the calculation identity and refuse execution."
+  "Return a candidate for a constant Calc expression in INPUT.
+An initial = forces calculation.  Failed simple arithmetic retains an
+INVALID candidate; other failed expressions leave normal search available.
+Bare decimal numbers and blank input do not trigger implicit calculation."
   (let* ((explicit (string-prefix-p "=" input))
          (expression (if explicit (substring input 1) input)))
-    (when (or explicit
-              (and (string-match-p "\\`[0-9.() +*/\t\n-]+\\'" expression)
-                   (string-match-p "[()+*/-]" expression)))
-      (let ((number (condition-case nil (launcher--arithmetic expression)
-                      (error nil))))
-        (if (null number)
-            (list (list :id 'calculation :title "= INVALID"
-                        :subtitle "Incomplete or invalid expression"
-                        :data nil))
-          (let ((value (if (integerp number) (number-to-string number)
-                         (format "%.12g" number))))
-            (list (list :id 'calculation :title (concat "= " value)
-                        :subtitle "Copy result"
-                        :data value))))))))
+    (unless (and (not explicit)
+                 (or (string-blank-p expression)
+                     (string-match-p
+                      "\\`[ \t\n]*\\(?:[0-9]+\\(?:\\.[0-9]*\\)?\\|\\.[0-9]+\\)[ \t\n]*\\'"
+                      expression)))
+      (let ((value (condition-case nil
+                       ;; This option is not among Calc's saved mode variables.
+                       (let ((calc-multiplication-has-precedence nil)
+                             (calc-eval-error nil))
+                         (calc-eval (list expression) 'num))
+                     (error nil))))
+        (cond
+         ((stringp value)
+          (setq value (string-remove-suffix "." value))
+          (list (list :id 'calculation :title (concat "= " value)
+                      :subtitle "Copy result" :data value)))
+         ((or explicit
+              (and (string-match-p "\\`[0-9.() +*/^%\t\n-]+\\'" expression)
+                   (string-match-p "[()+*/^%-]" expression)))
+          (list (list :id 'calculation :title "= INVALID"
+                      :subtitle "Incomplete or invalid expression"
+                      :data nil))))))))
 
 (defun launcher--calculator-submit (candidate)
   "Copy CANDIDATE's calculated value, refusing incomplete expressions."
@@ -458,17 +422,82 @@ Inherit TOOL's icon only when ITEM has no :icon, leaving ITEM unchanged."
   (and launcher--query-session
        (gethash candidate (launcher--query-session-candidates launcher--query-session))))
 
-(defun launcher--results-annotation (candidate)
-  "Annotate CANDIDATE using its structured result."
-  (when-let* ((subtitle (plist-get (launcher--result-for-candidate candidate) :subtitle)))
-    (concat "  " subtitle)))
+(defun launcher--display-width (string pixels)
+  "Measure STRING in pixels when PIXELS is non-nil, otherwise columns."
+  (if pixels (string-pixel-width string (current-buffer)) (string-width string)))
+
+(defun launcher--display-truncate (string width pixels)
+  "Return STRING shortened to WIDTH display units, preserving properties."
+  (setq width (max 0 width))
+  (if (<= (launcher--display-width string pixels) width) string
+    (let* ((ellipsis (propertize "…" 'face (get-text-property 0 'face string)))
+           (room (- width (launcher--display-width ellipsis pixels)))
+           (low 0) (high (length string)))
+      (if (< room 0) ""
+        ;; Measure prefixes rather than summing glyph widths (font shaping).
+        (while (< low high)
+          (let ((mid (/ (+ low high 1) 2)))
+            (if (<= (launcher--display-width (substring string 0 mid) pixels) room)
+                (setq low mid)
+              (setq high (1- mid)))))
+        (concat (substring string 0 low) ellipsis)))))
 
 (defun launcher--results-affixation (candidates)
-  "Affix CANDIDATES with their tool-provided icons and subtitles."
-  (mapcar (lambda (candidate)
-            (list candidate
-                  (launcher-icons-prefix (plist-get (launcher--result-for-candidate candidate) :icon))
-                  (or (launcher--results-annotation candidate) ""))) candidates))
+  "Affix CANDIDATES with icons and a stable, window-sized annotation column.
+Only display copies are shortened; completion identities remain intact."
+  (let* ((pixels (display-graphic-p))
+         (width (max 1 (window-body-width nil pixels)))
+         (space (max 1 (launcher--display-width " " pixels)))
+         (gap (* 2 space))
+         (step (* 4 space))
+         ;; Cap the whole name area at 40 columns; leave ten for annotations.
+         (limit (min (* 40 space) (max 0 (- width (* 10 space)))))
+         (icons (launcher-icons-enabled-p))
+         (metrics (list pixels width space (default-font-height)
+                        (frame-parameter nil 'font) (copy-tree face-remapping-alist)))
+         (session launcher--query-session)
+         (column 0)
+         (rows
+          (mapcar
+           (lambda (candidate)
+             (let* ((result (launcher--result-for-candidate candidate))
+                    (title (or (plist-get result :title)
+                               (get-text-property 0 'display candidate) candidate))
+                    (prefix (if icons
+                                (launcher-icons-prefix (plist-get result :icon)) ""))
+                    (prefix-width (launcher--display-width prefix pixels)))
+               (setq column (max column (+ prefix-width
+                                           (launcher--display-width title pixels) gap)))
+               (list candidate prefix title prefix-width (plist-get result :subtitle))))
+           candidates)))
+    (setq column (* step (ceiling column step)))
+    (setq column
+          (min limit
+               (max column
+                    (if (and session
+                             (equal metrics (launcher--query-session-annotation-metrics session)))
+                        (launcher--query-session-annotation-column session)
+                      0))))
+    (when session
+      (setf (launcher--query-session-annotation-column session) column
+            (launcher--query-session-annotation-metrics session) metrics))
+    (mapcar
+     (lambda (row)
+       (pcase-let* ((`(,candidate ,prefix ,title ,prefix-width ,subtitle) row)
+                    (visible (launcher--display-truncate
+                              title (- column gap prefix-width) pixels))
+                    (copy (if (equal visible title) candidate
+                            (propertize candidate 'display visible 'help-echo title)))
+                    (annotation (launcher--display-truncate
+                                 (propertize (or subtitle "") 'face 'completions-annotations)
+                                 (- width column space) pixels)))
+         (list copy prefix
+               (if (string-empty-p annotation) ""
+                 (concat
+                  (propertize " " 'display
+                              `(space :align-to ,(if pixels (list column) column)))
+                  annotation)))))
+     rows)))
 
 (defun launcher--results-setup-history ()
   "Initialize a private input history snapshot for minibuffer navigation."
@@ -513,15 +542,21 @@ Inherit TOOL's icon only when ITEM has no :icon, leaving ITEM unchanged."
 
 (defun launcher--result-execute (result)
   "Execute RESULT and validate its action return value."
-  (let ((value (if (plist-member result :completion)
-                   (list :input (plist-get result :completion))
-                 (funcall (launcher--tool-submit (plist-get result :tool))
-                          (plist-get result :item)))))
+  (let* ((value (if (plist-member result :completion)
+                    (list :input (plist-get result :completion))
+                  (funcall (launcher--tool-submit (plist-get result :tool))
+                           (plist-get result :item))))
+         (buffer (pcase value
+                   ((pred bufferp) value)
+                   ((or `(:buffer ,buffer)
+                        `(:buffer ,buffer :action ,_)
+                        `(:action ,_ :buffer ,buffer))
+                    buffer))))
     (unless (or (null value)
-                (and (bufferp value) (buffer-live-p value) (not (minibufferp value)))
+                (and (buffer-live-p buffer) (not (minibufferp buffer)))
                 (and (proper-list-p value) (= (length value) 2)
                      (eq (car value) :input) (stringp (cadr value))))
-      (error "Result action must return nil, a live buffer, or (:input STRING)"))
+      (error "Result action must return nil, a live buffer, (:buffer BUFFER [:action ACTION]), or (:input STRING)"))
     value))
 
 (defun launcher--results-record-selection (result)
@@ -601,9 +636,9 @@ after closing the minibuffer.  No raw input is executed."
                 (assq-delete-all 'launcher-result (copy-tree completion-category-overrides))))
          (icons (launcher-icons-enabled-p))
          choice
+         (completions-format 'one-column)
          (completion-extra-properties
-          (if icons '(:affixation-function launcher--results-affixation)
-            '(:annotation-function launcher--results-annotation))))
+          '(:affixation-function launcher--results-affixation)))
     (when (and icons entries)
       (condition-case err (launcher-icons-prepare (mapcar #'cdr entries))
         (error (message "Launcher icons unavailable: %s" (error-message-string err)))))

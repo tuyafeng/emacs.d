@@ -63,20 +63,7 @@
        t)))
 
   (setq launcher-fallback-search-url "https://www.google.com.hk/search?newwindow=1&q=%s")
-  (setq browse-url-browser-function #'browse-url-default-browser)
-
-  (defun my/launcher-align-annotation (ann)
-    "Align Launcher annotations."
-    (when (and ann (not (string-empty-p ann)))
-      (concat
-       (propertize " " 'display '(space :align-to 32))
-       (propertize (string-trim-left ann)
-                   'face 'marginalia-documentation))))
-
-  (with-eval-after-load 'launcher-query
-    (advice-add 'launcher--results-annotation
-                :filter-return
-                #'my/launcher-align-annotation)))
+  (setq browse-url-browser-function #'browse-url-default-browser))
 
 ;; Entry point invoked by skhd hotkeys
 
@@ -98,14 +85,48 @@
 (use-package osx-dictionary
   :after launcher
   :config
-  (require 'launcher-osx-dictionary)
+  (defun my/dictionary-query (query)
+    "Return a dictionary preview candidate for QUERY."
+    (let ((word (string-trim query)))
+      (unless (string-empty-p word)
+        (require 'osx-dictionary)
+        ;; Keep incremental queries out of the search history.
+        (let ((osx-dictionary-search-log-file nil)
+              (text (with-temp-buffer
+                      (osx-dictionary--insert-search-result word)
+                      (buffer-string))))
+          (list (list :id word :title word :data word
+                      :subtitle
+                      (truncate-string-to-width
+                       (string-join (split-string text) " ")
+                       160 nil nil "…")))))))
+
+  (defun my/dictionary-submit (candidate)
+    "Prepare CANDIDATE for display in a temporary dictionary window."
+    (require 'osx-dictionary)
+    (let ((word (plist-get candidate :data)))
+      ;; Populate the native result buffer without keeping layout changes.
+      (save-window-excursion
+        (osx-dictionary--view-result word))
+      (let ((buffer (osx-dictionary--get-buffer word)))
+        (with-current-buffer buffer
+          ;; Disable conflicting View mode keys.
+          (when (bound-and-true-p view-mode)
+            (view-mode -1))
+          (use-local-map (copy-keymap (current-local-map)))
+          (local-set-key (kbd "q") #'quit-window))
+        (list :buffer buffer
+              :action
+              '((display-buffer-reuse-window display-buffer-pop-up-window)
+                (inhibit-same-window . t))))))
+
   (add-to-list 'launcher-tools
                `("d" :name "Dictionary"
                  :icon ,(when (require 'nerd-icons nil t)
                           (nerd-icons-faicon "nf-fa-book"))
-                 :query launcher-osx-dictionary-query
+                 :query my/dictionary-query
                  :debounce 0.3
-                 :submit launcher-osx-dictionary-submit)))
+                 :submit my/dictionary-submit)))
 
 ;; Empty trash
 

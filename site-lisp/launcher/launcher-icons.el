@@ -26,12 +26,6 @@ elsewhere the launcher shows text only, as when this is nil."
   :type 'boolean
   :group 'launcher)
 
-(defcustom launcher-icon-size 20
-  "Size of application icons in the launcher's list, in logical pixels.
-Icons stay sharp up to 32 pixels on a Retina display."
-  :type 'natnum
-  :group 'launcher)
-
 (defcustom launcher-icon-cache-directory
   (locate-user-emacs-file "cache/launcher/icons/")
   "Directory in which the launcher keeps application icons.
@@ -193,32 +187,29 @@ ICON is a propertized string, (:file PNG-PATH), (:builtin KEY), or nil.
 Built-in references resolve through `launcher-builtin-icons' at display
 time, without following further references.  Missing or unusable images
 show an equally sized blank.  Text keeps its properties
-and is centered in a slot at least `launcher-icon-size' pixels wide."
+and is centered in a slot at least as wide as the current buffer's
+default font height.  Images and blanks use that height as their size,
+following font remapping without including extra line spacing."
   (when (and launcher-show-icons (consp icon) (eq (car icon) :builtin))
     (setq icon (and (boundp 'launcher-builtin-icons)
                     (alist-get (cadr icon) launcher-builtin-icons))))
-  (cond
-   ((not launcher-show-icons) "")
-   ((and (stringp icon) (not (string-empty-p icon)))
-    (let* ((padding (max 0 (- launcher-icon-size
-                             (string-pixel-width icon (current-buffer)))))
-           (half (/ padding 2.0)))
-      (concat (propertize " " 'display `(space :width (,half)))
-              icon
-              (propertize " " 'display
-                          `(space :width (,half) :height (,launcher-icon-size)))
-              " ")))
-   (t
-    (let* ((size launcher-icon-size)
-           (file (and (consp icon) (plist-get icon :file)))
-           (image (condition-case nil
-                      (when (and file (file-regular-p file) (file-readable-p file))
-                        (create-image file 'png nil :width size :height size
-                                      :scale 1 :ascent 'center))
-                    (error nil))))
-      (concat (propertize " " 'display
-                          (or image `(space :width (,size) :height (,size))))
-              " ")))))
+  (if (not launcher-show-icons) ""
+    (let ((size (default-font-height)))
+      (if (and (stringp icon) (not (string-empty-p icon)))
+          (let ((half (/ (max 0 (- size (string-pixel-width icon (current-buffer)))) 2.0)))
+            (concat (propertize " " 'display `(space :width (,half)))
+                    icon
+                    (propertize " " 'display `(space :width (,half) :height (,size)))
+                    " "))
+        (let* ((file (and (consp icon) (plist-get icon :file)))
+               (image (condition-case nil
+                          (when (and file (file-regular-p file) (file-readable-p file))
+                            (create-image file 'png nil :width size :height size
+                                          :scale 1 :ascent 'center))
+                        (error nil))))
+          (concat (propertize " " 'display
+                              (or image `(space :width (,size) :height (,size))))
+                  " "))))))
 
 (defun launcher-icons-index-refreshed (paths)
   "Note that the app index now holds PATHS: delete the icons of other apps.
